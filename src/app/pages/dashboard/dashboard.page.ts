@@ -55,9 +55,9 @@ import { SettingsService } from '../../core/services/settings.service';
             <ion-icon name="chevron-forward-outline" />
           </ion-button>
         </div>
-        @if (seasonsService.seasons().length > 1) {
+        @if (sortedSeasons().length > 1) {
           <div class="season-dots">
-            @for (s of seasonsService.seasons(); track s.id) {
+            @for (s of sortedSeasons(); track s.id) {
               <div class="season-dot" [class.active]="s.id === seasonsService.activeSeason()?.id"></div>
             }
           </div>
@@ -190,14 +190,17 @@ export class DashboardPage {
   matchCount  = computed(() => this.matches.matches().length);
   teamCount   = computed(() => this.teams.teams().length);
 
+  // Oldest first for navigation
+  sortedSeasons = computed(() => [...this.seasonsService.seasons()].reverse());
+
   private activeIndex = computed(() => {
     const id = this.seasonsService.activeSeason()?.id;
-    return this.seasonsService.seasons().findIndex(s => s.id === id);
+    return this.sortedSeasons().findIndex(s => s.id === id);
   });
   prevSeasonIndex = computed(() => this.activeIndex() - 1);
   nextSeasonIndex = computed(() => {
     const next = this.activeIndex() + 1;
-    return next < this.seasonsService.seasons().length ? next : -1;
+    return next < this.sortedSeasons().length ? next : -1;
   });
 
   constructor() {
@@ -206,7 +209,7 @@ export class DashboardPage {
 
   async switchSeason(idx: number) {
     if (idx < 0) return;
-    this.seasonsService.setActiveSeason(this.seasonsService.seasons()[idx].id);
+    this.seasonsService.setActiveSeason(this.sortedSeasons()[idx].id);
     await Promise.all([
       this.settings.load(),
       this.teams.load(),
