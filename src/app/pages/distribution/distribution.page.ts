@@ -18,6 +18,7 @@ import { PlayersService } from '../../core/services/players.service';
 import { TeamsService } from '../../core/services/teams.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { MatchOverridesService } from '../../core/services/match-overrides.service';
+import { SeasonsService } from '../../core/services/season.service';
 import { DistributedMatch } from '../../core/models/distributed-match.model';
 import { Player } from '../../core/models/player.model';
 
@@ -35,10 +36,10 @@ import { Player } from '../../core/models/player.model';
       <ion-toolbar>
         <ion-title>Kampfordeling</ion-title>
         <ion-buttons slot="end">
-          <ion-button [disabled]="generating()" (click)="regenerate()" title="Oppdater">
+          <ion-button [disabled]="generating() || seasonsSvc.isActiveSeasonArchived()" (click)="regenerate()" title="Oppdater">
             <ion-icon name="refresh-outline" />
           </ion-button>
-          <ion-button [disabled]="generating()" (click)="confirmFresh()" title="Ny fordeling">
+          <ion-button [disabled]="generating() || seasonsSvc.isActiveSeasonArchived()" (click)="confirmFresh()" title="Ny fordeling">
             <ion-icon name="sync-outline" />
           </ion-button>
         </ion-buttons>
@@ -52,6 +53,12 @@ import { Player } from '../../core/models/player.model';
     </ion-header>
 
     <ion-content class="page-content">
+      @if (seasonsSvc.isActiveSeasonArchived()) {
+        <div class="archived-banner">
+          <ion-icon name="lock-closed-outline" />
+          <span>Arkivert sesong – fordeling er skrivebeskyttet</span>
+        </div>
+      }
       @if (generating()) {
         <div class="center-state">
           <ion-spinner name="crescent" />
@@ -233,7 +240,7 @@ import { Player } from '../../core/models/player.model';
           }
 
           <div style="padding: 16px;">
-            <ion-button expand="block" color="success" (click)="applyAndRegenerate()">
+            <ion-button expand="block" color="success" (click)="applyAndRegenerate()" [disabled]="seasonsSvc.isActiveSeasonArchived()">
               Regenerer med endringer
             </ion-button>
           </div>
@@ -305,6 +312,13 @@ import { Player } from '../../core/models/player.model';
     .count-pill  { font-size: 12px; font-weight: 700; background: #10B98120; color: #10B981; border-radius: 8px; padding: 3px 8px; }
     .locked-pill { font-size: 11px; font-weight: 600; background: #F59E0B20; color: #F59E0B; border-radius: 8px; padding: 2px 6px; }
 
+    .archived-banner {
+      display: flex; align-items: center; gap: 8px;
+      background: #F59E0B18; border-bottom: 1px solid #F59E0B40;
+      color: #F59E0B; font-size: 13px; font-weight: 600;
+      padding: 10px 16px;
+    }
+    .archived-banner ion-icon { font-size: 16px; flex-shrink: 0; }
     .modal-content { --background: #0F172A; }
     .override-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748B; letter-spacing: 1px; padding: 16px 16px 6px; }
     .override-list { background: #1E293B; border-radius: 14px; margin: 0 12px; overflow: hidden; }
@@ -324,6 +338,7 @@ export class DistributionPage {
   private teamsSvc     = inject(TeamsService);
   private settingsSvc  = inject(SettingsService);
   private overridesSvc = inject(MatchOverridesService);
+  readonly seasonsSvc  = inject(SeasonsService);
   private toast        = inject(ToastController);
   private alert        = inject(AlertController);
 
@@ -353,7 +368,7 @@ export class DistributionPage {
     addIcons({
       refreshOutline, syncOutline, checkmarkCircleOutline, warningOutline,
       lockClosedOutline, lockOpenOutline, banOutline, calendarOutline,
-      chevronDownOutline, chevronUpOutline, personOutline, swapHorizontalOutline
+      chevronDownOutline, chevronUpOutline, personOutline, swapHorizontalOutline,
     });
   }
 

@@ -9,7 +9,7 @@ import {
   AlertController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { logOutOutline, calendarOutline, personCircleOutline, addOutline, pencilOutline, trashOutline, checkmarkOutline } from 'ionicons/icons';
+import { logOutOutline, calendarOutline, personCircleOutline, addOutline, pencilOutline, trashOutline, checkmarkOutline, lockClosedOutline } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
 import { SeasonsService } from '../../core/services/season.service';
 import { SettingsService } from '../../core/services/settings.service';
@@ -45,23 +45,32 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
       </ion-toolbar>
 
       <!-- Season selector -->
-      <ion-toolbar>
-        <ion-select
-          class="season-select"
-          [value]="seasons.activeSeason()?.id"
-          (ionChange)="selectSeason($event)"
-          interface="action-sheet"
-          placeholder="Velg sesong"
-        >
-          @for (s of seasons.seasons(); track s.id) {
-            <ion-select-option [value]="s.id">{{ s.name }}{{ s.archived ? ' (arkivert)' : '' }}</ion-select-option>
+      <ion-toolbar class="season-toolbar">
+        <div class="season-picker">
+          <div class="season-picker-left">
+            <div class="season-picker-label">Sesong</div>
+            <ion-select
+              class="season-select"
+              [value]="seasons.activeSeason()?.id"
+              (ionChange)="selectSeason($event)"
+              interface="action-sheet"
+              placeholder="Velg sesong"
+            >
+              @for (s of seasons.seasons(); track s.id) {
+                <ion-select-option [value]="s.id">{{ s.name }}{{ s.archived ? ' (arkivert)' : '' }}</ion-select-option>
+              }
+            </ion-select>
+          </div>
+          @if (seasons.isActiveSeasonArchived()) {
+            <div class="archived-pill">
+              <ion-icon name="lock-closed-outline" />
+              Skrivebeskyttet
+            </div>
           }
-        </ion-select>
-        <ion-buttons slot="end">
-          <ion-button (click)="openNewSeason()">
-            <ion-icon name="add-outline" />
+          <ion-button fill="clear" class="add-season-btn" (click)="openNewSeason()">
+            <ion-icon name="add-outline" slot="icon-only" />
           </ion-button>
-        </ion-buttons>
+        </div>
       </ion-toolbar>
 
       <!-- Section tabs -->
@@ -314,7 +323,22 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
   styles: [`
     ion-toolbar { --background: #0F172A; --color: #F8FAFC; }
     .page-content { --background: #0F172A; }
-    .season-select { --color: #F8FAFC; --placeholder-color: #64748B; flex: 1; }
+
+    .season-toolbar { --background: #0F172A; --min-height: 56px; }
+    .season-picker {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px 8px 16px; width: 100%;
+    }
+    .season-picker-left { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+    .season-picker-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; margin-bottom: 1px; }
+    .season-select { --color: #F8FAFC; --placeholder-color: #64748B; font-size: 16px; font-weight: 700; max-width: 100%; }
+    .archived-pill {
+      display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+      background: #F59E0B18; color: #F59E0B; border: 1px solid #F59E0B40;
+      border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 700;
+    }
+    .archived-pill ion-icon { font-size: 12px; }
+    .add-season-btn { --color: #10B981; flex-shrink: 0; }
 
     .section-tabs {
       display: flex; overflow-x: auto; gap: 6px; padding: 8px 12px;
@@ -405,7 +429,7 @@ export class SettingsPage {
   private settingsLoaded = false;
 
   constructor() {
-    addIcons({ logOutOutline, calendarOutline, personCircleOutline, addOutline, pencilOutline, trashOutline, checkmarkOutline });
+    addIcons({ logOutOutline, calendarOutline, personCircleOutline, addOutline, pencilOutline, trashOutline, checkmarkOutline, lockClosedOutline });
     // Sync draft when settings signal changes (e.g. after load or season switch)
     effect(() => {
       const s = this.settingsSvc.settings();
