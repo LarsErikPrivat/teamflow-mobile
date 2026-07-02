@@ -49,16 +49,13 @@ export class SeasonsService {
       this.activeSeasonKey(clientId)
     );
 
-    const savedSeason =
-      seasons.find((season) => season.id === savedActiveSeasonId) ?? null;
+    const savedSeason = seasons.find((s) => s.id === savedActiveSeasonId) ?? null;
+    const activeSeason = savedSeason ?? seasons.find((s) => !s.archived) ?? seasons[0] ?? null;
 
-    this.activeSeason.set(savedSeason);
+    this.activeSeason.set(activeSeason);
 
-    if (savedSeason) {
-      localStorage.setItem(
-        this.activeSeasonKey(clientId),
-        savedSeason.id
-      );
+    if (activeSeason) {
+      localStorage.setItem(this.activeSeasonKey(clientId), activeSeason.id);
     } else {
       localStorage.removeItem(this.activeSeasonKey(clientId));
     }
