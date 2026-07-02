@@ -57,7 +57,7 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
               placeholder="Velg sesong"
             >
               @for (s of seasons.seasons(); track s.id) {
-                <ion-select-option [value]="s.id">{{ s.name }}{{ s.archived ? ' (arkivert)' : '' }}</ion-select-option>
+                <ion-select-option [value]="s.id">{{ s.name }}</ion-select-option>
               }
             </ion-select>
           </div>
@@ -86,6 +86,12 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
     </ion-header>
 
     <ion-content class="page-content">
+      @if (archived()) {
+        <div class="archived-banner">
+          <ion-icon name="lock-closed-outline" />
+          <span>Arkivert sesong – kun lesing</span>
+        </div>
+      }
 
       <!-- SESONGER -->
       @if (activeSection() === 'seasons') {
@@ -115,14 +121,14 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
       <!-- GENERELT -->
       @if (activeSection() === 'general') {
         <div class="save-bar">
-          <ion-button expand="block" color="success" (click)="saveSettings()" [disabled]="!hasChanges()">
+          <ion-button expand="block" color="success" (click)="saveSettings()" [disabled]="!hasChanges() || archived()">
             Lagre endringer
           </ion-button>
         </div>
         <ion-list class="settings-list">
           <ion-item class="settings-item" lines="none">
             <ion-label>Antall nivåer</ion-label>
-            <ion-select slot="end" [(ngModel)]="draft().numberOfLevels" (ngModelChange)="onDraftChange('numberOfLevels', $event)" interface="action-sheet">
+            <ion-select slot="end" [(ngModel)]="draft().numberOfLevels" (ngModelChange)="onDraftChange('numberOfLevels', $event)" interface="action-sheet" [disabled]="archived()">
               <ion-select-option [value]="1">1</ion-select-option>
               <ion-select-option [value]="2">2</ion-select-option>
               <ion-select-option [value]="3">3</ion-select-option>
@@ -130,39 +136,39 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
           </ion-item>
           <ion-item class="settings-item" lines="none">
             <ion-label>Ukentlig maks kamper</ion-label>
-            <ion-input slot="end" type="number" [(ngModel)]="draft().weeklyMaxMatchesPerPlayer" (ngModelChange)="onDraftChange('weeklyMaxMatchesPerPlayer', $event)" class="number-input" />
+            <ion-input slot="end" type="number" [(ngModel)]="draft().weeklyMaxMatchesPerPlayer" (ngModelChange)="onDraftChange('weeklyMaxMatchesPerPlayer', $event)" class="number-input" [disabled]="archived()" />
           </ion-item>
           <ion-item class="settings-item" lines="none">
             <ion-label>Minimum kampmål per uke</ion-label>
-            <ion-input slot="end" type="number" [(ngModel)]="draft().weeklyMinimumMatchTarget" (ngModelChange)="onDraftChange('weeklyMinimumMatchTarget', $event)" class="number-input" />
+            <ion-input slot="end" type="number" [(ngModel)]="draft().weeklyMinimumMatchTarget" (ngModelChange)="onDraftChange('weeklyMinimumMatchTarget', $event)" class="number-input" [disabled]="archived()" />
           </ion-item>
           <ion-item class="settings-item" lines="none">
             <ion-label>Maks uker uten kamp</ion-label>
-            <ion-input slot="end" type="number" [(ngModel)]="draft().maxConsecutiveWeeksWithoutMatch" (ngModelChange)="onDraftChange('maxConsecutiveWeeksWithoutMatch', $event)" class="number-input" />
+            <ion-input slot="end" type="number" [(ngModel)]="draft().maxConsecutiveWeeksWithoutMatch" (ngModelChange)="onDraftChange('maxConsecutiveWeeksWithoutMatch', $event)" class="number-input" [disabled]="archived()" />
           </ion-item>
           <ion-item class="settings-item" lines="none">
             <ion-label>Min. dager mellom kamper</ion-label>
-            <ion-input slot="end" type="number" [(ngModel)]="draft().minimumDaysBetweenMatches" (ngModelChange)="onDraftChange('minimumDaysBetweenMatches', $event)" class="number-input" />
+            <ion-input slot="end" type="number" [(ngModel)]="draft().minimumDaysBetweenMatches" (ngModelChange)="onDraftChange('minimumDaysBetweenMatches', $event)" class="number-input" [disabled]="archived()" />
           </ion-item>
           <ion-item class="settings-item" lines="none">
             <ion-label>Minimum spillere per kamp</ion-label>
-            <ion-input slot="end" type="number" [(ngModel)]="draft().ownMatchMinimumPlayers" (ngModelChange)="onDraftChange('ownMatchMinimumPlayers', $event)" class="number-input" />
+            <ion-input slot="end" type="number" [(ngModel)]="draft().ownMatchMinimumPlayers" (ngModelChange)="onDraftChange('ownMatchMinimumPlayers', $event)" class="number-input" [disabled]="archived()" />
           </ion-item>
           <ion-item class="settings-item" lines="none">
             <ion-label>Nivå 3 maks kamper (streng)</ion-label>
-            <ion-input slot="end" type="number" [(ngModel)]="draft().level3StrictMaxMatches" (ngModelChange)="onDraftChange('level3StrictMaxMatches', $event)" class="number-input" />
+            <ion-input slot="end" type="number" [(ngModel)]="draft().level3StrictMaxMatches" (ngModelChange)="onDraftChange('level3StrictMaxMatches', $event)" class="number-input" [disabled]="archived()" />
           </ion-item>
           <ion-item class="settings-item" lines="none">
             <ion-label>Nivå 3 maks kamper (fallback)</ion-label>
-            <ion-input slot="end" type="number" [(ngModel)]="draft().level3FallbackMaxMatches" (ngModelChange)="onDraftChange('level3FallbackMaxMatches', $event)" class="number-input" />
+            <ion-input slot="end" type="number" [(ngModel)]="draft().level3FallbackMaxMatches" (ngModelChange)="onDraftChange('level3FallbackMaxMatches', $event)" class="number-input" [disabled]="archived()" />
           </ion-item>
           <ion-item class="settings-item" lines="none">
             <ion-label>Ekstra ukentlig fallback</ion-label>
-            <ion-input slot="end" type="number" [(ngModel)]="draft().fallbackExtraWeeklyAllowance" (ngModelChange)="onDraftChange('fallbackExtraWeeklyAllowance', $event)" class="number-input" />
+            <ion-input slot="end" type="number" [(ngModel)]="draft().fallbackExtraWeeklyAllowance" (ngModelChange)="onDraftChange('fallbackExtraWeeklyAllowance', $event)" class="number-input" [disabled]="archived()" />
           </ion-item>
           <ion-item class="settings-item" lines="none">
             <ion-label>Topp-opp kan bruke alle egne nivåer</ion-label>
-            <ion-toggle slot="end" [(ngModel)]="draft().ownTopUpCanUseAnyOwnLevel" (ngModelChange)="onDraftChange('ownTopUpCanUseAnyOwnLevel', $event)" color="success" />
+            <ion-toggle slot="end" [(ngModel)]="draft().ownTopUpCanUseAnyOwnLevel" (ngModelChange)="onDraftChange('ownTopUpCanUseAnyOwnLevel', $event)" color="success" [disabled]="archived()" />
           </ion-item>
         </ion-list>
       }
@@ -170,7 +176,7 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
       <!-- KAMPREGLER (spillere per lag/posisjon) -->
       @if (activeSection() === 'rules') {
         <div class="save-bar">
-          <ion-button expand="block" color="success" (click)="saveSettings()" [disabled]="!hasChanges()">
+          <ion-button expand="block" color="success" (click)="saveSettings()" [disabled]="!hasChanges() || archived()">
             Lagre endringer
           </ion-button>
         </div>
@@ -186,12 +192,12 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
               <div slot="content" class="rule-content">
                 <ion-item class="rule-item" lines="none">
                   <ion-label>Antall spillere totalt</ion-label>
-                  <ion-input slot="end" type="number" [ngModel]="rule.requiredPlayerCount" (ngModelChange)="updateTeamRule(rule.teamId, $event)" class="number-input" />
+                  <ion-input slot="end" type="number" [ngModel]="rule.requiredPlayerCount" (ngModelChange)="updateTeamRule(rule.teamId, $event)" class="number-input" [disabled]="archived()" />
                 </ion-item>
                 @for (pos of positions.positions(); track pos.id) {
                   <ion-item class="rule-item" lines="none">
                     <ion-label>{{ pos.name }}</ion-label>
-                    <ion-input slot="end" type="number" [ngModel]="getPosRule(rule.positionRules, pos.id)" (ngModelChange)="updatePosRule(rule.teamId, pos.id, $event)" class="number-input" />
+                    <ion-input slot="end" type="number" [ngModel]="getPosRule(rule.positionRules, pos.id)" (ngModelChange)="updatePosRule(rule.teamId, pos.id, $event)" class="number-input" [disabled]="archived()" />
                   </ion-item>
                 }
               </div>
@@ -203,7 +209,7 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
       <!-- KAMPMATRISE -->
       @if (activeSection() === 'matrix') {
         <div class="save-bar">
-          <ion-button expand="block" color="success" (click)="saveSettings()" [disabled]="!hasChanges()">
+          <ion-button expand="block" color="success" (click)="saveSettings()" [disabled]="!hasChanges() || archived()">
             Lagre endringer
           </ion-button>
         </div>
@@ -212,12 +218,12 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
           <ion-list class="settings-list">
             <ion-item class="settings-item" lines="none">
               <ion-label>E{{ level }} (egne)</ion-label>
-              <ion-input slot="end" type="number" [ngModel]="getMatrixVal(level, 'own')" (ngModelChange)="setMatrixVal(level, 'own', $event)" class="number-input" />
+              <ion-input slot="end" type="number" [ngModel]="getMatrixVal(level, 'own')" (ngModelChange)="setMatrixVal(level, 'own', $event)" class="number-input" [disabled]="archived()" />
             </ion-item>
             @if (draft().numberOfLevels >= 2) {
               <ion-item class="settings-item" lines="none">
                 <ion-label>H{{ level }} (hospitering)</ion-label>
-                <ion-input slot="end" type="number" [ngModel]="getMatrixHospVal(level)" (ngModelChange)="setMatrixHospVal(level, $event)" class="number-input" />
+                <ion-input slot="end" type="number" [ngModel]="getMatrixHospVal(level)" (ngModelChange)="setMatrixHospVal(level, $event)" class="number-input" [disabled]="archived()" />
               </ion-item>
             }
           </ion-list>
@@ -226,12 +232,14 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
 
       <!-- POSISJONER -->
       @if (activeSection() === 'positions') {
-        <div class="save-bar">
-          <ion-button expand="block" (click)="openNewPosition()">
-            <ion-icon name="add-outline" slot="start" />
-            Legg til posisjon
-          </ion-button>
-        </div>
+        @if (!archived()) {
+          <div class="save-bar">
+            <ion-button expand="block" (click)="openNewPosition()">
+              <ion-icon name="add-outline" slot="start" />
+              Legg til posisjon
+            </ion-button>
+          </div>
+        }
         <ion-list class="settings-list">
           @for (pos of positions.positions(); track pos.id) {
             <ion-item class="settings-item" lines="none">
@@ -239,14 +247,16 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
                 <h2>{{ pos.name }}</h2>
                 <ion-note>ID: {{ pos.id }} · Rekkefølge: {{ pos.sortOrder }}</ion-note>
               </ion-label>
-              <ion-buttons slot="end">
-                <ion-button fill="clear" size="small" (click)="editPosition(pos)">
-                  <ion-icon name="pencil-outline" slot="icon-only" class="action-icon" />
-                </ion-button>
-                <ion-button fill="clear" size="small" (click)="deletePosition(pos.id)">
-                  <ion-icon name="trash-outline" slot="icon-only" class="icon-danger" />
-                </ion-button>
-              </ion-buttons>
+              @if (!archived()) {
+                <ion-buttons slot="end">
+                  <ion-button fill="clear" size="small" (click)="editPosition(pos)">
+                    <ion-icon name="pencil-outline" slot="icon-only" class="action-icon" />
+                  </ion-button>
+                  <ion-button fill="clear" size="small" (click)="deletePosition(pos.id)">
+                    <ion-icon name="trash-outline" slot="icon-only" class="icon-danger" />
+                  </ion-button>
+                </ion-buttons>
+              }
             </ion-item>
           } @empty {
             <ion-item lines="none"><ion-label><ion-note>Ingen posisjoner definert</ion-note></ion-label></ion-item>
@@ -340,6 +350,14 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
     .archived-pill ion-icon { font-size: 12px; }
     .add-season-btn { --color: #10B981; flex-shrink: 0; }
 
+    .archived-banner {
+      display: flex; align-items: center; gap: 8px;
+      background: #F59E0B18; border-bottom: 1px solid #F59E0B40;
+      color: #F59E0B; font-size: 13px; font-weight: 600;
+      padding: 10px 16px;
+    }
+    .archived-banner ion-icon { font-size: 16px; flex-shrink: 0; }
+
     .section-tabs {
       display: flex; overflow-x: auto; gap: 6px; padding: 8px 12px;
       scrollbar-width: none;
@@ -401,6 +419,7 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
 export class SettingsPage {
   readonly auth       = inject(AuthService);
   readonly seasons    = inject(SeasonsService);
+  readonly archived   = computed(() => this.seasons.isActiveSeasonArchived());
   private settingsSvc = inject(SettingsService);
   readonly teams      = inject(TeamsService);
   private playersSvc  = inject(PlayersService);
