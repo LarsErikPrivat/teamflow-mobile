@@ -370,7 +370,7 @@ export class DistributionPage {
   }
 
   async confirmFresh() {
-    const a = await this.alert.create({
+    const a = await this.alert.create({ cssClass: 'dark-alert',
       header: 'Ny fordeling',
       message: 'Dette nullstiller alle manuelle endringer. Fortsette?',
       buttons: [
@@ -403,7 +403,7 @@ export class DistributionPage {
       await t.present();
     } catch (e: any) {
       console.error(e);
-      const a = await this.alert.create({ header: 'Feil', message: e?.message ?? 'Noe gikk galt', buttons: ['OK'] });
+      const a = await this.alert.create({ cssClass: 'dark-alert', header: 'Feil', message: e?.message ?? 'Noe gikk galt', buttons: ['OK'] });
       await a.present();
     } finally {
       this.generating.set(false);

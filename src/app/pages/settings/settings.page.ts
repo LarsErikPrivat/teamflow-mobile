@@ -433,7 +433,7 @@ export class SettingsPage {
       const t = await this.toast.create({ message: 'Innstillinger lagret', duration: 2000, color: 'success', position: 'top' });
       await t.present();
     } catch (e: any) {
-      const a = await this.alert.create({ header: 'Feil', message: e?.message ?? 'Noe gikk galt', buttons: ['OK'] });
+      const a = await this.alert.create({ cssClass: 'dark-alert', header: 'Feil', message: e?.message ?? 'Noe gikk galt', buttons: ['OK'] });
       await a.present();
     }
   }
@@ -555,7 +555,7 @@ export class SettingsPage {
       const t = await this.toast.create({ message: 'Sesong opprettet', duration: 2000, color: 'success', position: 'top' });
       await t.present();
     } catch (e: any) {
-      const a = await this.alert.create({ header: 'Feil', message: e?.message, buttons: ['OK'] });
+      const a = await this.alert.create({ cssClass: 'dark-alert', header: 'Feil', message: e?.message, buttons: ['OK'] });
       await a.present();
     }
   }
@@ -565,7 +565,7 @@ export class SettingsPage {
       if (s.archived) {
         await this.seasons.reactivate(s.id);
       } else {
-        const a = await this.alert.create({
+        const a = await this.alert.create({ cssClass: 'dark-alert',
           header: 'Arkiver sesong',
           message: `Arkivere ${s.name}?`,
           buttons: [
@@ -576,13 +576,13 @@ export class SettingsPage {
         await a.present();
       }
     } catch (e: any) {
-      const a = await this.alert.create({ header: 'Feil', message: e?.message, buttons: ['OK'] });
+      const a = await this.alert.create({ cssClass: 'dark-alert', header: 'Feil', message: e?.message, buttons: ['OK'] });
       await a.present();
     }
   }
 
   async deleteSeason(s: Season) {
-    const a = await this.alert.create({
+    const a = await this.alert.create({ cssClass: 'dark-alert',
       header: 'Slett sesong',
       message: `Slett ${s.name} og all tilhørende data?`,
       buttons: [
@@ -623,13 +623,13 @@ export class SettingsPage {
       }
       this.posModal.set(false);
     } catch (e: any) {
-      const a = await this.alert.create({ header: 'Feil', message: e?.message, buttons: ['OK'] });
+      const a = await this.alert.create({ cssClass: 'dark-alert', header: 'Feil', message: e?.message, buttons: ['OK'] });
       await a.present();
     }
   }
 
   async deletePosition(id: string) {
-    const a = await this.alert.create({
+    const a = await this.alert.create({ cssClass: 'dark-alert',
       header: 'Slett posisjon',
       message: 'Slett denne posisjonen?',
       buttons: [
@@ -644,7 +644,7 @@ export class SettingsPage {
 
   // --- Auth ---
   async logout() {
-    const a = await this.alert.create({
+    const a = await this.alert.create({ cssClass: 'dark-alert',
       header: 'Logg ut',
       message: 'Er du sikker?',
       buttons: [

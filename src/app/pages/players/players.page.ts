@@ -293,13 +293,13 @@ export class PlayersPage {
       const t = await this.toast.create({ message: this.editMode() ? 'Spiller oppdatert' : 'Spiller lagt til', duration: 1800, color: 'success', position: 'top' });
       await t.present();
     } catch (e: any) {
-      const a = await this.alert.create({ header: 'Feil', message: e?.message ?? 'Noe gikk galt', buttons: ['OK'] });
+      const a = await this.alert.create({ cssClass: 'dark-alert', header: 'Feil', message: e?.message ?? 'Noe gikk galt', buttons: ['OK'] });
       await a.present();
     }
   }
 
   async remove(player: Player) {
-    const a = await this.alert.create({
+    const a = await this.alert.create({ cssClass: 'dark-alert',
       header: 'Slett spiller',
       message: `Slett ${player.name}?`,
       buttons: [

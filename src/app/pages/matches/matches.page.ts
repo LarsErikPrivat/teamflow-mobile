@@ -273,7 +273,7 @@ export class MatchesPage {
 
   async save() {
     if (!this.formTeamId || !this.formDate || !this.formTime || !this.formHomeTeam.trim() || !this.formAwayTeam.trim()) {
-      const a = await this.alert.create({ header: 'Mangler felt', message: 'Fyll ut alle feltene.', buttons: ['OK'] });
+      const a = await this.alert.create({ cssClass: 'dark-alert', header: 'Mangler felt', message: 'Fyll ut alle feltene.', buttons: ['OK'] });
       await a.present();
       return;
     }
@@ -300,13 +300,13 @@ export class MatchesPage {
       const t = await this.toast.create({ message: this.editMode() ? 'Kamp oppdatert' : 'Kamp lagt til', duration: 1800, color: 'success', position: 'top' });
       await t.present();
     } catch (e: any) {
-      const a = await this.alert.create({ header: 'Feil', message: e?.message ?? 'Noe gikk galt', buttons: ['OK'] });
+      const a = await this.alert.create({ cssClass: 'dark-alert', header: 'Feil', message: e?.message ?? 'Noe gikk galt', buttons: ['OK'] });
       await a.present();
     }
   }
 
   async remove(match: Match) {
-    const a = await this.alert.create({
+    const a = await this.alert.create({ cssClass: 'dark-alert',
       header: 'Slett kamp',
       message: `Slett ${match.homeTeam} – ${match.awayTeam}?`,
       buttons: [
