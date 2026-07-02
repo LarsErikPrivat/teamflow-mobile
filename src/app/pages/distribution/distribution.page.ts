@@ -9,7 +9,7 @@ import { addIcons } from 'ionicons';
 import {
   refreshOutline, syncOutline, checkmarkCircleOutline, warningOutline,
   lockClosedOutline, lockOpenOutline, banOutline, calendarOutline,
-  chevronDownOutline, chevronUpOutline, personOutline
+  chevronDownOutline, chevronUpOutline, personOutline, swapHorizontalOutline
 } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
 import { DistributionService } from '../../core/services/distribution.service';
@@ -146,6 +146,37 @@ import { Player } from '../../core/models/player.model';
       }
     </ion-content>
 
+    <!-- Swap player modal -->
+    <ion-modal [isOpen]="swapModal()" (didDismiss)="swapModal.set(false)">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Bytt spiller</ion-title>
+            <ion-buttons slot="start">
+              <ion-button (click)="swapModal.set(false)">Avbryt</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="modal-content">
+          <div class="override-section-label">Velg erstatter for {{ swapFromPlayer()?.name }}</div>
+          <ion-list class="override-list">
+            @for (p of availableForSwap(); track p.id) {
+              <ion-item class="override-item" lines="none" (click)="doSwap(p.id)" button detail="false">
+                <div class="ov-avatar" slot="start" [style.background]="levelColor(p.level)">{{ p.name.charAt(0) }}</div>
+                <ion-label>
+                  <h2>{{ p.name }}</h2>
+                  <ion-note>Nivå {{ p.level }}</ion-note>
+                </ion-label>
+              </ion-item>
+            }
+            @if (availableForSwap().length === 0) {
+              <ion-item lines="none"><ion-label><ion-note>Ingen tilgjengelige spillere</ion-note></ion-label></ion-item>
+            }
+          </ion-list>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+
     <!-- Override modal -->
     <ion-modal [isOpen]="overrideModal()" (didDismiss)="overrideModal.set(false)">
       <ng-template>
@@ -168,6 +199,9 @@ import { Player } from '../../core/models/player.model';
                   <ion-note>Nivå {{ p.level }}</ion-note>
                 </ion-label>
                 <ion-buttons slot="end">
+                  <ion-button fill="clear" size="small" color="primary" (click)="openSwap(overrideItem()!.match.id, p.id)">
+                    <ion-icon name="swap-horizontal-outline" slot="icon-only" />
+                  </ion-button>
                   <ion-button fill="clear" size="small" (click)="toggleLock(overrideItem()!.match.id, p.id)"
                     [color]="isLocked(overrideItem()!.match.id, p.id) ? 'warning' : 'medium'">
                     <ion-icon [name]="isLocked(overrideItem()!.match.id, p.id) ? 'lock-closed-outline' : 'lock-open-outline'" slot="icon-only" />
@@ -299,12 +333,27 @@ export class DistributionPage {
   expandedRows  = signal<Record<string, boolean>>({});
   overrideModal = signal(false);
   overrideItem  = signal<DistributedMatch | null>(null);
+  swapModal     = signal(false);
+  swapMatchId   = signal('');
+  swapFromId    = signal('');
+
+  swapFromPlayer = computed(() =>
+    this.playersSvc.players().find(p => p.id === this.swapFromId()) ?? null
+  );
+
+  availableForSwap = computed(() => {
+    const item = this.overrideItem();
+    if (!item) return [];
+    const inMatch = new Set(item.players.map(p => p.id));
+    const excIds  = new Set(this.overridesSvc.getOverride(item.match.id).excludedPlayerIds);
+    return this.playersSvc.players().filter(p => !inMatch.has(p.id) && !excIds.has(p.id));
+  });
 
   constructor() {
     addIcons({
       refreshOutline, syncOutline, checkmarkCircleOutline, warningOutline,
       lockClosedOutline, lockOpenOutline, banOutline, calendarOutline,
-      chevronDownOutline, chevronUpOutline, personOutline
+      chevronDownOutline, chevronUpOutline, personOutline, swapHorizontalOutline
     });
   }
 
@@ -397,6 +446,22 @@ export class DistributionPage {
 
   async unexcludePlayer(matchId: string, playerId: string) {
     await this.overridesSvc.toggleExcludedPlayer(matchId, playerId);
+  }
+
+  openSwap(matchId: string, playerId: string) {
+    this.swapMatchId.set(matchId);
+    this.swapFromId.set(playerId);
+    this.swapModal.set(true);
+  }
+
+  async doSwap(newPlayerId: string) {
+    const matchId   = this.swapMatchId();
+    const oldId     = this.swapFromId();
+    // Exclude old player, lock new player for this match
+    await this.overridesSvc.toggleExcludedPlayer(matchId, oldId);
+    await this.overridesSvc.toggleLockedPlayer(matchId, newPlayerId);
+    this.swapModal.set(false);
+    await this.applyAndRegenerate();
   }
 
   async applyAndRegenerate() {
