@@ -1,0 +1,6 @@
+{
+  "appId": "no.rfk.teamflow",
+  "appName": "TeamFlow",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
