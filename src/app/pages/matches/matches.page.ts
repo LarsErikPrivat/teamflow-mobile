@@ -184,9 +184,20 @@ import { Match } from '../../core/models/match.model';
     .form-row { display: flex; padding: 0 8px; }
     .field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748B; letter-spacing: 1px; margin-bottom: 8px; }
     .form-input, .form-select {
-      --background: #1E293B; --color: #F8FAFC;
-      --placeholder-color: #64748B; --border-color: #334155;
-      border-radius: 10px;
+      --background: #1E293B;
+      --color: #F8FAFC;
+      --placeholder-color: #475569;
+      --border-color: #334155;
+      --border-width: 1.5px;
+      --border-style: solid;
+      --border-radius: 12px;
+      --padding-start: 14px;
+      --padding-end: 14px;
+      --padding-top: 14px;
+      --padding-bottom: 14px;
+      --highlight-color-focused: #10B981;
+      border-radius: 12px;
+      min-height: 52px;
     }
   `]
 })

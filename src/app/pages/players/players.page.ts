@@ -182,15 +182,31 @@ import { Player, PlayerLevel, PlayerMatchMatrix } from '../../core/models/player
     .form-section { padding: 16px 16px 0; }
     .field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748B; letter-spacing: 1px; margin-bottom: 8px; }
     .form-input, .form-select {
-      --background: #1E293B; --color: #F8FAFC;
-      --placeholder-color: #64748B; --border-color: #334155;
-      border-radius: 10px;
+      --background: #1E293B;
+      --color: #F8FAFC;
+      --placeholder-color: #475569;
+      --border-color: #334155;
+      --border-width: 1.5px;
+      --border-style: solid;
+      --border-radius: 12px;
+      --padding-start: 14px;
+      --padding-end: 14px;
+      --padding-top: 14px;
+      --padding-bottom: 14px;
+      --highlight-color-focused: #10B981;
+      border-radius: 12px;
+      min-height: 52px;
     }
     .toggle-item { --background: transparent; --color: #F8FAFC; padding: 0; }
     .matrix-grid { display: flex; flex-direction: column; gap: 8px; }
     .matrix-row { display: flex; align-items: center; gap: 12px; }
     .matrix-label { font-size: 13px; font-weight: 700; color: #10B981; width: 28px; flex-shrink: 0; }
-    .matrix-input { --background: #1E293B; --color: #F8FAFC; --border-color: #334155; flex: 1; border-radius: 8px; }
+    .matrix-input {
+      --background: #1E293B; --color: #F8FAFC;
+      --border-color: #334155; --border-width: 1.5px; --border-style: solid;
+      --border-radius: 10px; --padding-start: 10px; --highlight-color-focused: #10B981;
+      flex: 1; border-radius: 10px; min-height: 44px;
+    }
   `]
 })
 export class PlayersPage {
