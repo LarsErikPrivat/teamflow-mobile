@@ -35,3 +35,82 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+/* Force dark theme on overlays (Alert, ActionSheet, Toast) */
+ion-alert {
+  --background: #1E293B;
+  --backdrop-opacity: 0.6;
+
+  .alert-wrapper {
+    background: #1E293B;
+    border: 1px solid #334155;
+    border-radius: 16px;
+  }
+
+  .alert-head {
+    padding-bottom: 8px;
+
+    .alert-title {
+      color: #F8FAFC;
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .alert-sub-title {
+      color: #94A3B8;
+    }
+  }
+
+  .alert-message {
+    color: #CBD5E1;
+    font-size: 14px;
+    padding-bottom: 12px;
+  }
+
+  .alert-button-group {
+    border-top: 1px solid #334155;
+    padding: 4px;
+  }
+
+  .alert-button {
+    color: #10B981;
+    font-weight: 600;
+
+    &.alert-button-role-destructive {
+      color: #EF4444;
+    }
+
+    &.alert-button-role-cancel {
+      color: #94A3B8;
+    }
+  }
+}
+
+ion-action-sheet {
+  --background: #1E293B;
+  --backdrop-opacity: 0.6;
+
+  .action-sheet-container .action-sheet-group {
+    background: #1E293B;
+    border-radius: 16px;
+    margin-bottom: 8px;
+    border: 1px solid #334155;
+  }
+
+  .action-sheet-title {
+    color: #94A3B8;
+    font-size: 13px;
+  }
+
+  .action-sheet-button {
+    color: #F8FAFC;
+    border-top: 1px solid #334155;
+
+    &:first-child { border-top: none; }
+
+    &.action-sheet-destructive { color: #EF4444; }
+    &.action-sheet-cancel { color: #94A3B8; font-weight: 600; }
+
+    .action-sheet-button-inner { color: inherit; }
+  }
+}
