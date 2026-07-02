@@ -7,10 +7,11 @@ import {
   IonToggle, AlertController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { addOutline, pencilOutline, trashOutline, checkmarkOutline } from 'ionicons/icons';
+import { addOutline, pencilOutline, trashOutline, checkmarkOutline, lockClosedOutline } from 'ionicons/icons';
 import { PlayersService } from '../../core/services/players.service';
 import { PositionsService } from '../../core/services/positions.service';
 import { SettingsService } from '../../core/services/settings.service';
+import { SeasonsService } from '../../core/services/season.service';
 import { Player, PlayerLevel, PlayerMatchMatrix } from '../../core/models/player.model';
 
 @Component({
@@ -26,11 +27,13 @@ import { Player, PlayerLevel, PlayerMatchMatrix } from '../../core/models/player
     <ion-header>
       <ion-toolbar>
         <ion-title>Spillere ({{ filtered().length }})</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="openNew()">
-            <ion-icon name="add-outline" />
-          </ion-button>
-        </ion-buttons>
+        @if (!seasons.isActiveSeasonArchived()) {
+          <ion-buttons slot="end">
+            <ion-button (click)="openNew()">
+              <ion-icon name="add-outline" />
+            </ion-button>
+          </ion-buttons>
+        }
       </ion-toolbar>
       <ion-toolbar>
         <ion-searchbar [(ngModel)]="search" placeholder="Søk spiller..." debounce="200" />
@@ -38,6 +41,12 @@ import { Player, PlayerLevel, PlayerMatchMatrix } from '../../core/models/player
     </ion-header>
 
     <ion-content class="page-content">
+      @if (seasons.isActiveSeasonArchived()) {
+        <div class="archived-banner">
+          <ion-icon name="lock-closed-outline" />
+          <span>Arkivert sesong – kun lesing</span>
+        </div>
+      }
       <ion-list class="player-list">
         @for (player of filtered(); track player.id) {
           <ion-item class="player-item" lines="none">
@@ -48,14 +57,16 @@ import { Player, PlayerLevel, PlayerMatchMatrix } from '../../core/models/player
               <h2>{{ player.name }}</h2>
               <ion-note>Nivå {{ player.level }} · {{ player.available ? 'Tilgjengelig' : 'Utilgjengelig' }}</ion-note>
             </ion-label>
-            <ion-buttons slot="end">
-              <ion-button fill="clear" (click)="edit(player)">
-                <ion-icon name="pencil-outline" slot="icon-only" class="action-icon" />
-              </ion-button>
-              <ion-button fill="clear" (click)="remove(player)">
-                <ion-icon name="trash-outline" slot="icon-only" class="action-icon danger" />
-              </ion-button>
-            </ion-buttons>
+            @if (!seasons.isActiveSeasonArchived()) {
+              <ion-buttons slot="end">
+                <ion-button fill="clear" (click)="edit(player)">
+                  <ion-icon name="pencil-outline" slot="icon-only" class="action-icon" />
+                </ion-button>
+                <ion-button fill="clear" (click)="remove(player)">
+                  <ion-icon name="trash-outline" slot="icon-only" class="action-icon danger" />
+                </ion-button>
+              </ion-buttons>
+            }
           </ion-item>
         } @empty {
           <ion-item lines="none">
@@ -157,6 +168,12 @@ import { Player, PlayerLevel, PlayerMatchMatrix } from '../../core/models/player
   `,
   styles: [`
     ion-toolbar { --background: #0F172A; --color: #F8FAFC; }
+    .archived-banner {
+      display: flex; align-items: center; gap: 8px;
+      background: #F59E0B18; border-bottom: 1px solid #F59E0B40;
+      color: #F59E0B; font-size: 13px; font-weight: 600; padding: 10px 16px;
+    }
+    .archived-banner ion-icon { font-size: 16px; flex-shrink: 0; }
     ion-searchbar { --background: #1E293B; --color: #F8FAFC; --placeholder-color: #64748B; --icon-color: #64748B; }
     .page-content { --background: #0F172A; }
     .player-list { background: transparent; padding: 8px 12px; }
@@ -214,6 +231,7 @@ export class PlayersPage {
   private settings = inject(SettingsService);
   private alert    = inject(AlertController);
   private toast    = inject(ToastController);
+  readonly seasons = inject(SeasonsService);
 
   search = '';
   modalOpen  = signal(false);
@@ -225,7 +243,7 @@ export class PlayersPage {
   formMatrix: PlayerMatchMatrix = this.defaultMatrix(1);
 
   constructor() {
-    addIcons({ addOutline, pencilOutline, trashOutline, checkmarkOutline });
+    addIcons({ addOutline, pencilOutline, trashOutline, checkmarkOutline, lockClosedOutline });
   }
 
   filtered = computed(() => {

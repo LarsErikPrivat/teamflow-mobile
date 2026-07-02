@@ -69,7 +69,7 @@ import { Player } from '../../core/models/player.model';
           <ion-icon name="calendar-outline" class="big-icon" />
           <h3>Ingen kamper å fordele</h3>
           <p>Legg til kamper og trykk oppdater.</p>
-          <ion-button (click)="regenerate()" color="success">Generer fordeling</ion-button>
+          <ion-button (click)="regenerate()" color="success" [disabled]="seasonsSvc.isActiveSeasonArchived()">Generer fordeling</ion-button>
         </div>
       } @else if (viewMode === 'matches') {
         <div class="match-list">

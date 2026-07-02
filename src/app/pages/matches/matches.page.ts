@@ -7,9 +7,10 @@ import {
   AlertController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { addOutline, pencilOutline, trashOutline, checkmarkOutline, calendarOutline } from 'ionicons/icons';
+import { addOutline, pencilOutline, trashOutline, checkmarkOutline, calendarOutline, lockClosedOutline } from 'ionicons/icons';
 import { MatchesService } from '../../core/services/matches.service';
 import { TeamsService } from '../../core/services/teams.service';
+import { SeasonsService } from '../../core/services/season.service';
 import { Match } from '../../core/models/match.model';
 
 @Component({
@@ -25,15 +26,23 @@ import { Match } from '../../core/models/match.model';
     <ion-header>
       <ion-toolbar>
         <ion-title>Kamper</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="openNew()">
-            <ion-icon name="add-outline" />
-          </ion-button>
-        </ion-buttons>
+        @if (!seasons.isActiveSeasonArchived()) {
+          <ion-buttons slot="end">
+            <ion-button (click)="openNew()">
+              <ion-icon name="add-outline" />
+            </ion-button>
+          </ion-buttons>
+        }
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="page-content">
+      @if (seasons.isActiveSeasonArchived()) {
+        <div class="archived-banner">
+          <ion-icon name="lock-closed-outline" />
+          <span>Arkivert sesong – kun lesing</span>
+        </div>
+      }
       <ion-accordion-group class="team-accordions" [value]="expandedTeam()">
         @for (group of matchesByTeam(); track group.teamId) {
           <ion-accordion [value]="group.teamId" (ionChange)="onAccordionChange($event, group.teamId)">
@@ -43,9 +52,11 @@ import { Match } from '../../core/models/match.model';
                 <h2>{{ group.teamName }}</h2>
                 <ion-note>{{ group.matches.length }} kamper · Nivå {{ group.level }}</ion-note>
               </ion-label>
-              <ion-button slot="end" fill="clear" size="small" (click)="openNewForTeam(group.teamId, $event)">
-                <ion-icon name="add-outline" slot="icon-only" class="add-icon" />
-              </ion-button>
+              @if (!seasons.isActiveSeasonArchived()) {
+                <ion-button slot="end" fill="clear" size="small" (click)="openNewForTeam(group.teamId, $event)">
+                  <ion-icon name="add-outline" slot="icon-only" class="add-icon" />
+                </ion-button>
+              }
             </ion-item>
 
             <div slot="content" class="match-list">
@@ -60,14 +71,16 @@ import { Match } from '../../core/models/match.model';
                   <div class="match-footer">
                     <span class="level-pill">Nivå {{ match.matchLevel }}</span>
                     <span class="home-pill">{{ match.homeGame ? 'Hjemme' : 'Borte' }}</span>
-                    <div class="match-actions">
-                      <ion-button fill="clear" size="small" (click)="edit(match)">
-                        <ion-icon name="pencil-outline" slot="icon-only" class="action-icon" />
-                      </ion-button>
-                      <ion-button fill="clear" size="small" (click)="remove(match)">
-                        <ion-icon name="trash-outline" slot="icon-only" class="action-icon danger" />
-                      </ion-button>
-                    </div>
+                    @if (!seasons.isActiveSeasonArchived()) {
+                      <div class="match-actions">
+                        <ion-button fill="clear" size="small" (click)="edit(match)">
+                          <ion-icon name="pencil-outline" slot="icon-only" class="action-icon" />
+                        </ion-button>
+                        <ion-button fill="clear" size="small" (click)="remove(match)">
+                          <ion-icon name="trash-outline" slot="icon-only" class="action-icon danger" />
+                        </ion-button>
+                      </div>
+                    }
                   </div>
                 </div>
               } @empty {
@@ -149,6 +162,12 @@ import { Match } from '../../core/models/match.model';
   `,
   styles: [`
     ion-toolbar { --background: #0F172A; --color: #F8FAFC; }
+    .archived-banner {
+      display: flex; align-items: center; gap: 8px;
+      background: #F59E0B18; border-bottom: 1px solid #F59E0B40;
+      color: #F59E0B; font-size: 13px; font-weight: 600; padding: 10px 16px;
+    }
+    .archived-banner ion-icon { font-size: 16px; flex-shrink: 0; }
     .page-content { --background: #0F172A; }
     .team-accordions { padding: 12px; background: transparent; }
 
@@ -205,6 +224,7 @@ export class MatchesPage {
   private matchesSvc = inject(MatchesService);
   private teamsSvc   = inject(TeamsService);
   private alert      = inject(AlertController);
+  readonly seasons   = inject(SeasonsService);
   private toast      = inject(ToastController);
 
   readonly teams = this.teamsSvc.teams;
@@ -222,7 +242,7 @@ export class MatchesPage {
   formHomeGame = signal(true);
 
   constructor() {
-    addIcons({ addOutline, pencilOutline, trashOutline, checkmarkOutline, calendarOutline });
+    addIcons({ addOutline, pencilOutline, trashOutline, checkmarkOutline, calendarOutline, lockClosedOutline });
   }
 
   matchesByTeam = computed(() => {
