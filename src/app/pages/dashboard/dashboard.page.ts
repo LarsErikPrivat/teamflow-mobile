@@ -1,25 +1,26 @@
 import { Component, inject, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardContent,
+  IonHeader, IonToolbar, IonContent, IonCard, IonCardContent,
   IonIcon, IonButton, IonButtons
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   peopleOutline, calendarOutline, gitNetworkOutline,
-  logOutOutline, sparklesOutline
+  logOutOutline, chevronBackOutline, chevronForwardOutline
 } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
 import { PlayersService } from '../../core/services/players.service';
 import { MatchesService } from '../../core/services/matches.service';
 import { TeamsService } from '../../core/services/teams.service';
 import { SeasonsService } from '../../core/services/season.service';
+import { SettingsService } from '../../core/services/settings.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardContent,
+    IonHeader, IonToolbar, IonContent, IonCard, IonCardContent,
     IonIcon, IonButton, IonButtons
   ],
   template: `
@@ -37,9 +38,30 @@ import { SeasonsService } from '../../core/services/season.service';
     </ion-header>
 
     <ion-content class="dashboard-content">
-      <div class="hero">
-        <img src="assets/teamflow-logo-mobile.svg" class="hero-logo" alt="TeamFlow" />
-        <p class="hero-season">{{ seasonsService.activeSeason()?.name ?? 'Ingen aktiv sesong' }}</p>
+      <!-- Season selector hero -->
+      <div class="season-hero">
+        <div class="season-label">Aktiv sesong</div>
+        <div class="season-nav">
+          <ion-button fill="clear" class="nav-btn" [disabled]="prevSeasonIndex() < 0" (click)="goToPrevSeason()">
+            <ion-icon name="chevron-back-outline" />
+          </ion-button>
+          <div class="season-name-block">
+            <span class="season-name">{{ seasonsService.activeSeason()?.name ?? 'Ingen sesong' }}</span>
+            @if (seasonsService.activeSeason()?.archived) {
+              <span class="archived-badge">Arkivert</span>
+            }
+          </div>
+          <ion-button fill="clear" class="nav-btn" [disabled]="nextSeasonIndex() < 0" (click)="goToNextSeason()">
+            <ion-icon name="chevron-forward-outline" />
+          </ion-button>
+        </div>
+        @if (seasonsService.seasons().length > 1) {
+          <div class="season-dots">
+            @for (s of seasonsService.seasons(); track s.id) {
+              <div class="season-dot" [class.active]="s.id === seasonsService.activeSeason()?.id"></div>
+            }
+          </div>
+        }
       </div>
 
       <div class="stat-row">
@@ -90,13 +112,43 @@ import { SeasonsService } from '../../core/services/season.service';
     .logo-img { height: 28px; width: auto; }
     .dashboard-content { --background: #0F172A; }
 
-    .hero {
-      padding: 32px 20px 24px;
-      background: linear-gradient(160deg, #0F172A 0%, #1E293B 100%);
-      display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+    .season-hero {
+      padding: 24px 20px 20px;
+      background: linear-gradient(160deg, #0F172A 0%, #162032 100%);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      border-bottom: 1px solid #1E293B;
     }
-    .hero-logo { height: 48px; width: auto; }
-    .hero-season { color: #64748B; font-size: 14px; margin: 0; }
+    .season-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: #475569;
+    }
+    .season-nav {
+      display: flex; align-items: center; gap: 4px; width: 100%;
+    }
+    .nav-btn {
+      --color: #64748B; --padding-start: 4px; --padding-end: 4px;
+      flex-shrink: 0;
+    }
+    .nav-btn[disabled] { opacity: 0.2; }
+    .season-name-block {
+      flex: 1; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .season-name {
+      font-size: 26px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.5px;
+    }
+    .archived-badge {
+      font-size: 11px; font-weight: 600; background: #F59E0B20;
+      color: #F59E0B; border-radius: 6px; padding: 2px 8px;
+    }
+    .season-dots {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .season-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #334155; transition: all 0.2s;
+    }
+    .season-dot.active { background: #10B981; width: 18px; border-radius: 3px; }
 
     .stat-row {
       display: flex; gap: 12px;
@@ -126,20 +178,45 @@ import { SeasonsService } from '../../core/services/season.service';
   `]
 })
 export class DashboardPage {
-  private auth   = inject(AuthService);
-  private router = inject(Router);
+  private auth    = inject(AuthService);
+  private router  = inject(Router);
   readonly seasonsService = inject(SeasonsService);
-  private players = inject(PlayersService);
-  private matches = inject(MatchesService);
-  private teams   = inject(TeamsService);
+  private players  = inject(PlayersService);
+  private matches  = inject(MatchesService);
+  private teams    = inject(TeamsService);
+  private settings  = inject(SettingsService);
 
   playerCount = computed(() => this.players.players().length);
   matchCount  = computed(() => this.matches.matches().length);
   teamCount   = computed(() => this.teams.teams().length);
 
+  private activeIndex = computed(() => {
+    const id = this.seasonsService.activeSeason()?.id;
+    return this.seasonsService.seasons().findIndex(s => s.id === id);
+  });
+  prevSeasonIndex = computed(() => this.activeIndex() - 1);
+  nextSeasonIndex = computed(() => {
+    const next = this.activeIndex() + 1;
+    return next < this.seasonsService.seasons().length ? next : -1;
+  });
+
   constructor() {
-    addIcons({ peopleOutline, calendarOutline, gitNetworkOutline, logOutOutline, sparklesOutline });
+    addIcons({ peopleOutline, calendarOutline, gitNetworkOutline, logOutOutline, chevronBackOutline, chevronForwardOutline });
   }
+
+  async switchSeason(idx: number) {
+    if (idx < 0) return;
+    this.seasonsService.setActiveSeason(this.seasonsService.seasons()[idx].id);
+    await Promise.all([
+      this.settings.load(),
+      this.teams.load(),
+      this.players.load(),
+      this.matches.load(),
+    ]);
+  }
+
+  goToPrevSeason() { this.switchSeason(this.prevSeasonIndex()); }
+  goToNextSeason() { this.switchSeason(this.nextSeasonIndex()); }
 
   nav(path: string) { this.router.navigate([path]); }
 
