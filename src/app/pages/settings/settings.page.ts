@@ -9,7 +9,7 @@ import {
   AlertController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { logOutOutline, calendarOutline, personCircleOutline, addOutline, pencilOutline, trashOutline, checkmarkOutline, lockClosedOutline } from 'ionicons/icons';
+import { logOutOutline, calendarOutline, personCircleOutline, addOutline, pencilOutline, trashOutline, checkmarkOutline, lockClosedOutline, informationCircleOutline } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
 import { SeasonsService } from '../../core/services/season.service';
 import { SettingsService } from '../../core/services/settings.service';
@@ -20,6 +20,7 @@ import { PositionsService } from '../../core/services/positions.service';
 import { AppSettings } from '../../core/models/settings.model';
 import { PlayerPosition } from '../../core/models/player.model';
 import { Season, SeasonHalf } from '../../core/models/season.model';
+import { APP_VERSION } from '../../../environments/environments/version';
 
 type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
 
@@ -274,6 +275,13 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
             <ion-note>{{ auth.user()?.email ?? '—' }}</ion-note>
           </ion-label>
         </ion-item>
+        <ion-item class="settings-item" lines="none">
+          <ion-icon name="information-circle-outline" slot="start" class="item-icon" />
+          <ion-label>
+            <h2>Versjon</h2>
+            <ion-note>v{{ appVersion }}</ion-note>
+          </ion-label>
+        </ion-item>
       </ion-list>
     </ion-content>
 
@@ -417,6 +425,7 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
   `]
 })
 export class SettingsPage {
+  readonly appVersion = APP_VERSION;
   readonly auth       = inject(AuthService);
   readonly seasons    = inject(SeasonsService);
   readonly archived   = computed(() => this.seasons.isActiveSeasonArchived());
@@ -448,7 +457,7 @@ export class SettingsPage {
   private settingsLoaded = false;
 
   constructor() {
-    addIcons({ logOutOutline, calendarOutline, personCircleOutline, addOutline, pencilOutline, trashOutline, checkmarkOutline, lockClosedOutline });
+    addIcons({ logOutOutline, calendarOutline, personCircleOutline, addOutline, pencilOutline, trashOutline, checkmarkOutline, lockClosedOutline, informationCircleOutline });
     // Sync draft when settings signal changes (e.g. after load or season switch)
     effect(() => {
       const s = this.settingsSvc.settings();

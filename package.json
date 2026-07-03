@@ -1,15 +1,18 @@
 {
   "name": "teamflow-mobile",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
+    "build": "node set-version.mjs && ng build",
+    "watch": "node set-version.mjs && ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "version:patch": "npm version patch --no-git-tag-version && node set-version.mjs",
+    "version:minor": "npm version minor --no-git-tag-version && node set-version.mjs",
+    "version:major": "npm version major --no-git-tag-version && node set-version.mjs"
   },
   "private": true,
   "dependencies": {
