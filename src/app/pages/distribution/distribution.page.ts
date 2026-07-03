@@ -2,7 +2,7 @@ import { Component, inject, computed, signal } from '@angular/core';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons,
   IonIcon, IonSegment, IonSegmentButton, IonLabel, IonBadge,
-  IonSpinner, IonModal, IonList, IonItem, IonNote,
+  IonSpinner, IonModal, IonList, IonItem, IonNote, IonCheckbox,
   ToastController, AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -10,7 +10,7 @@ import {
   refreshOutline, syncOutline, checkmarkCircleOutline, warningOutline,
   lockClosedOutline, lockOpenOutline, banOutline, calendarOutline,
   chevronDownOutline, chevronUpOutline, personOutline, swapHorizontalOutline,
-  copyOutline
+  copyOutline, listOutline
 } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
 import { DistributionService } from '../../core/services/distribution.service';
@@ -30,7 +30,7 @@ import { Player } from '../../core/models/player.model';
     FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons,
     IonIcon, IonSegment, IonSegmentButton, IonLabel, IonBadge,
-    IonSpinner, IonModal, IonList, IonItem, IonNote
+    IonSpinner, IonModal, IonList, IonItem, IonNote, IonCheckbox
   ],
   template: `
     <ion-header>
@@ -103,8 +103,8 @@ import { Player } from '../../core/models/player.model';
                 @for (w of item.warnings.slice(0,2); track w.message) {
                   <span class="warn-chip">{{ w.message }}</span>
                 }
-                <ion-button fill="clear" size="small" class="copy-btn" (click)="copyMatch(item); $event.stopPropagation()" title="Kopier spillerliste">
-                  <ion-icon name="copy-outline" slot="icon-only" />
+                <ion-button fill="clear" size="small" class="copy-btn" (click)="openJoblist(item); $event.stopPropagation()" title="Jobliste">
+                  <ion-icon name="list-outline" slot="icon-only" />
                 </ion-button>
                 <ion-button fill="clear" size="small" class="edit-btn" (click)="openOverride(item); $event.stopPropagation()">
                   Rediger
@@ -156,6 +156,59 @@ import { Player } from '../../core/models/player.model';
         </div>
       }
     </ion-content>
+
+    <!-- Joblist modal -->
+    <ion-modal [isOpen]="joblistModal()" (didDismiss)="closeJoblist()">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>{{ getTeamName(joblistItem()?.match?.teamId ?? '') }}</ion-title>
+            <ion-buttons slot="start">
+              <ion-button (click)="closeJoblist()">Lukk</ion-button>
+            </ion-buttons>
+            <ion-buttons slot="end">
+              <ion-button (click)="copyJoblist()" title="Kopier">
+                <ion-icon name="copy-outline" slot="icon-only" />
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="modal-content">
+          @if (joblistItem(); as item) {
+            <div class="jl-match-info">
+              <span class="jl-fixture">{{ item.match.homeTeam }} – {{ item.match.awayTeam }}</span>
+              <span class="jl-date">{{ item.match.date }} · {{ item.match.time }}</span>
+            </div>
+            <div class="jl-progress">
+              <div class="jl-progress-bar" [style.width.%]="joblistProgress()"></div>
+            </div>
+            <div class="jl-count">{{ joblistCheckedCount() }} / {{ item.players.length }} lagt inn i Spond</div>
+            <ion-list class="jl-list">
+              @for (p of item.players; track p.id; let i = $index) {
+                <ion-item class="jl-item" lines="none" (click)="toggleJoblistCheck(p.id)">
+                  <ion-checkbox
+                    slot="start"
+                    [checked]="isJoblistChecked(p.id)"
+                    (ionChange)="toggleJoblistCheck(p.id)"
+                    color="success"
+                  />
+                  <ion-label [class.jl-done]="isJoblistChecked(p.id)">
+                    <span class="jl-num">{{ i + 1 }}.</span> {{ p.name }}
+                  </ion-label>
+                  <ion-note slot="end" class="jl-level">Nivå {{ p.level }}</ion-note>
+                </ion-item>
+              }
+            </ion-list>
+            @if (joblistCheckedCount() === item.players.length && item.players.length > 0) {
+              <div class="jl-done-banner">
+                <ion-icon name="checkmark-circle-outline" />
+                Alle spillere lagt inn i Spond!
+              </div>
+            }
+          }
+        </ion-content>
+      </ng-template>
+    </ion-modal>
 
     <!-- Swap player modal -->
     <ion-modal [isOpen]="swapModal()" (didDismiss)="swapModal.set(false)">
@@ -326,6 +379,28 @@ import { Player } from '../../core/models/player.model';
     .archived-banner ion-icon { font-size: 16px; flex-shrink: 0; }
     .modal-content { --background: #0F172A; }
     .copy-btn { --color: #64748B; height: 24px; }
+    .jl-match-info { padding: 16px 16px 4px; display: flex; flex-direction: column; gap: 2px; }
+    .jl-fixture { font-size: 16px; font-weight: 700; color: #F8FAFC; }
+    .jl-date { font-size: 13px; color: #64748B; }
+    .jl-progress { height: 4px; background: #1E293B; margin: 12px 16px 0; border-radius: 2px; overflow: hidden; }
+    .jl-progress-bar { height: 100%; background: #10B981; border-radius: 2px; transition: width 0.3s ease; }
+    .jl-count { font-size: 12px; color: #64748B; padding: 6px 16px 12px; }
+    .jl-list { background: transparent; padding: 0 12px; }
+    .jl-item {
+      --background: #1E293B; --color: #F8FAFC;
+      --padding-start: 14px; --inner-padding-end: 14px;
+      border-radius: 12px; margin-bottom: 8px;
+      --min-height: 52px;
+    }
+    .jl-num { color: #475569; font-size: 13px; margin-right: 2px; }
+    ion-label.jl-done { text-decoration: line-through; color: #475569 !important; }
+    .jl-level { font-size: 12px; color: #475569; }
+    .jl-done-banner {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin: 16px; padding: 14px; border-radius: 14px;
+      background: #10B98120; color: #10B981; font-weight: 700; font-size: 15px;
+    }
+    .jl-done-banner ion-icon { font-size: 22px; }
     .override-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748B; letter-spacing: 1px; padding: 16px 16px 6px; }
     .override-list { background: #1E293B; border-radius: 14px; margin: 0 12px; overflow: hidden; }
     .override-item { --background: transparent; --color: #F8FAFC; --padding-start: 12px; }
@@ -355,6 +430,9 @@ export class DistributionPage {
   overrideModal = signal(false);
   overrideItem  = signal<DistributedMatch | null>(null);
   swapModal     = signal(false);
+  joblistModal  = signal(false);
+  joblistItem   = signal<DistributedMatch | null>(null);
+  joblistChecked = signal<Set<string>>(new Set());
   swapMatchId   = signal('');
   swapFromId    = signal('');
 
@@ -370,12 +448,18 @@ export class DistributionPage {
     return this.playersSvc.players().filter(p => !inMatch.has(p.id) && !excIds.has(p.id));
   });
 
+  joblistCheckedCount = computed(() => this.joblistChecked().size);
+  joblistProgress = computed(() => {
+    const total = this.joblistItem()?.players.length ?? 0;
+    return total === 0 ? 0 : (this.joblistChecked().size / total) * 100;
+  });
+
   constructor() {
     addIcons({
       refreshOutline, syncOutline, checkmarkCircleOutline, warningOutline,
       lockClosedOutline, lockOpenOutline, banOutline, calendarOutline,
       chevronDownOutline, chevronUpOutline, personOutline, swapHorizontalOutline,
-      copyOutline
+      copyOutline, listOutline
     });
   }
 
@@ -508,6 +592,45 @@ export class DistributionPage {
 
   getMissing(item: DistributedMatch) {
     return Math.max(this.getRequired(item) - item.players.length, 0);
+  }
+
+  openJoblist(item: DistributedMatch) {
+    this.joblistItem.set(item);
+    this.joblistChecked.set(new Set());
+    this.joblistModal.set(true);
+  }
+
+  closeJoblist() {
+    this.joblistModal.set(false);
+    this.joblistItem.set(null);
+    this.joblistChecked.set(new Set());
+  }
+
+  isJoblistChecked(playerId: string): boolean {
+    return this.joblistChecked().has(playerId);
+  }
+
+  toggleJoblistCheck(playerId: string) {
+    const s = new Set(this.joblistChecked());
+    s.has(playerId) ? s.delete(playerId) : s.add(playerId);
+    this.joblistChecked.set(s);
+  }
+
+  async copyJoblist() {
+    const item = this.joblistItem();
+    if (!item) return;
+    const teamName = this.getTeamName(item.match.teamId);
+    const lines = [
+      `${teamName} – ${item.match.date} ${item.match.time}`,
+      `${item.match.homeTeam} – ${item.match.awayTeam}`,
+      '',
+      ...item.players.map((p, i) => `${i + 1}. ${p.name}`),
+    ];
+    await navigator.clipboard.writeText(lines.join('\n'));
+    const t = await this.toast.create({
+      message: 'Kopiert til utklippstavle', duration: 1800, color: 'success', position: 'top'
+    });
+    await t.present();
   }
 
   async copyMatch(item: DistributedMatch) {
