@@ -38,6 +38,18 @@ export const authGuard = async () => {
     }
   }
 
+  // Super admin: load all clients and restore previously selected client
+  if (client.isSuperAdmin()) {
+    await client.loadClients();
+    const savedClientId = localStorage.getItem('active-client-id');
+    if (savedClientId && savedClientId !== client.clientId()) {
+      const saved = client.clients().find(c => c.id === savedClientId);
+      if (saved) {
+        await client.setActiveClient(saved);
+      }
+    }
+  }
+
   // Load seasons first (other services depend on activeSeason)
   await seasons.load();
 

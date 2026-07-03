@@ -17,6 +17,8 @@ import { TeamsService } from '../../core/services/teams.service';
 import { PlayersService } from '../../core/services/players.service';
 import { MatchesService } from '../../core/services/matches.service';
 import { PositionsService } from '../../core/services/positions.service';
+import { ClientService } from '../../core/services/client.service';
+import { MatchOverridesService } from '../../core/services/match-overrides.service';
 import { AppSettings } from '../../core/models/settings.model';
 import { PlayerPosition } from '../../core/models/player.model';
 import { Season, SeasonHalf } from '../../core/models/season.model';
@@ -265,6 +267,27 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
         </ion-list>
       }
 
+      <!-- Super admin: klientvelger -->
+      @if (clientSvc.isSuperAdmin()) {
+        <div class="section-label" style="margin-top:24px">Klient</div>
+        <ion-list class="settings-list">
+          <ion-item class="settings-item" lines="none">
+            <ion-label>Aktiv klient</ion-label>
+            <ion-select
+              slot="end"
+              [value]="clientSvc.clientId()"
+              (ionChange)="selectClient($event)"
+              interface="action-sheet"
+              style="max-width:180px; --color:#10B981; font-weight:700"
+            >
+              @for (c of clientSvc.clients(); track c.id) {
+                <ion-select-option [value]="c.id">{{ c.name }}</ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+        </ion-list>
+      }
+
       <!-- Konto -->
       <div class="section-label" style="margin-top:24px">Konto</div>
       <ion-list class="settings-list">
@@ -434,6 +457,8 @@ export class SettingsPage {
   private playersSvc  = inject(PlayersService);
   private matchesSvc  = inject(MatchesService);
   readonly positions  = inject(PositionsService);
+  readonly clientSvc  = inject(ClientService);
+  private overridesSvc = inject(MatchOverridesService);
   private router     = inject(Router);
   private alert      = inject(AlertController);
   private toast      = inject(ToastController);
@@ -692,6 +717,34 @@ export class SettingsPage {
       ]
     });
     await a.present();
+  }
+
+  // --- Client switching (super admin) ---
+  async selectClient(ev: any) {
+    const clientId = ev.detail?.value;
+    if (!clientId || clientId === this.clientSvc.clientId()) return;
+
+    const client = this.clientSvc.clients().find(c => c.id === clientId);
+    if (!client) return;
+
+    await this.clientSvc.setActiveClient(client);
+
+    await this.seasons.load();
+    await Promise.all([
+      this.settingsSvc.load(),
+      this.teams.load(),
+      this.playersSvc.load(),
+      this.matchesSvc.load(),
+      this.positions.load(),
+      this.overridesSvc.load(),
+    ]);
+
+    this.settingsLoaded = false;
+    this.draft.set({ ...this.settingsSvc.settings() });
+    this.settingsLoaded = true;
+
+    const t = await this.toast.create({ message: `Byttet til ${client.name}`, duration: 2000, color: 'success', position: 'top' });
+    await t.present();
   }
 
   // --- Auth ---

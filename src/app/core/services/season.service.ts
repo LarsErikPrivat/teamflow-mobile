@@ -4,7 +4,7 @@ import { Season, SeasonHalf } from '../models/season.model';
 import { SupabaseService } from './supabase.service';
 import { ClientService } from './client.service';
 
-const ACTIVE_SEASON_KEY = 'activeSeasonId';
+const ACTIVE_SEASON_KEY = 'teamflow-mobile:activeSeasonId';
 
 @Injectable({ providedIn: 'root' })
 export class SeasonsService {
