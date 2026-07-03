@@ -100,8 +100,11 @@ import { Player } from '../../core/models/player.model';
               <!-- Count bar -->
               <div class="count-bar">
                 <span class="count-chip">{{ item.players.length }}/{{ getRequired(item) }} spillere</span>
-                @for (w of item.warnings.slice(0,2); track w.message) {
-                  <span class="warn-chip">{{ w.message }}</span>
+                @if (item.warnings.length > 0) {
+                  <button class="warn-badge" (click)="openWarnings(item); $event.stopPropagation()">
+                    <ion-icon name="warning-outline" />
+                    {{ item.warnings.length }}
+                  </button>
                 }
                 <ion-button fill="clear" size="small" class="copy-btn" (click)="openJoblist(item); $event.stopPropagation()" title="Jobliste">
                   <ion-icon name="list-outline" slot="icon-only" />
@@ -206,6 +209,34 @@ import { Player } from '../../core/models/player.model';
               </div>
             }
           }
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+
+    <!-- Warnings modal -->
+    <ion-modal [isOpen]="warnModal()" (didDismiss)="warnModal.set(false)" [breakpoints]="[0, 0.5]" [initialBreakpoint]="0.5">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Advarsler</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="warnModal.set(false)">Lukk</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="modal-content">
+          <div class="warn-match-info">
+            <span class="warn-fixture">{{ warnItem()?.match?.homeTeam }} – {{ warnItem()?.match?.awayTeam }}</span>
+            <span class="warn-date">{{ warnItem()?.match?.date }} · {{ warnItem()?.match?.time }}</span>
+          </div>
+          <ion-list class="warn-list">
+            @for (w of warnItem()?.warnings ?? []; track w.message) {
+              <ion-item class="warn-item" lines="none">
+                <ion-icon name="warning-outline" slot="start" class="warn-icon" />
+                <ion-label class="ion-text-wrap">{{ w.message }}</ion-label>
+              </ion-item>
+            }
+          </ion-list>
         </ion-content>
       </ng-template>
     </ion-modal>
@@ -346,7 +377,19 @@ import { Player } from '../../core/models/player.model';
 
     .count-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
     .count-chip { font-size: 11px; font-weight: 600; background: #10B98120; color: #10B981; border-radius: 6px; padding: 2px 8px; }
-    .warn-chip  { font-size: 11px; background: #F59E0B20; color: #F59E0B; border-radius: 6px; padding: 2px 8px; flex: 1; }
+    .warn-badge {
+      display: flex; align-items: center; gap: 4px;
+      background: #F59E0B20; color: #F59E0B; border: 1px solid #F59E0B40;
+      border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 700;
+      cursor: pointer; outline: none;
+    }
+    .warn-badge ion-icon { font-size: 13px; }
+    .warn-match-info { padding: 14px 16px 8px; display: flex; flex-direction: column; gap: 2px; }
+    .warn-fixture { font-size: 15px; font-weight: 700; color: #F8FAFC; }
+    .warn-date { font-size: 12px; color: #64748B; }
+    .warn-list { background: transparent; padding: 0 12px 12px; }
+    .warn-item { --background: #F59E0B12; --color: #F8FAFC; border-radius: 10px; margin-bottom: 8px; --padding-start: 12px; }
+    .warn-icon { color: #F59E0B; font-size: 18px; }
     .edit-btn   { --color: #64748B; font-size: 12px; margin-left: auto; height: 24px; }
 
     .player-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #334155; }
@@ -430,6 +473,8 @@ export class DistributionPage {
   overrideModal = signal(false);
   overrideItem  = signal<DistributedMatch | null>(null);
   swapModal     = signal(false);
+  warnModal     = signal(false);
+  warnItem      = signal<DistributedMatch | null>(null);
   joblistModal  = signal(false);
   joblistItem   = signal<DistributedMatch | null>(null);
   joblistChecked = signal<Set<string>>(new Set());
@@ -592,6 +637,11 @@ export class DistributionPage {
 
   getMissing(item: DistributedMatch) {
     return Math.max(this.getRequired(item) - item.players.length, 0);
+  }
+
+  openWarnings(item: DistributedMatch) {
+    this.warnItem.set(item);
+    this.warnModal.set(true);
   }
 
   openJoblist(item: DistributedMatch) {
