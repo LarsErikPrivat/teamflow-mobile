@@ -36,7 +36,7 @@ import { Player, PlayerLevel, PlayerMatchMatrix } from '../../core/models/player
         }
       </ion-toolbar>
       <ion-toolbar>
-        <ion-searchbar [(ngModel)]="search" placeholder="Søk spiller..." debounce="200" />
+        <ion-searchbar [ngModel]="search()" (ionInput)="search.set($event.detail.value ?? '')" placeholder="Søk spiller..." debounce="200" />
       </ion-toolbar>
     </ion-header>
 
@@ -233,7 +233,7 @@ export class PlayersPage {
   private toast    = inject(ToastController);
   readonly seasons = inject(SeasonsService);
 
-  search = '';
+  search = signal('');
   modalOpen  = signal(false);
   editMode   = signal(false);
   editId     = signal('');
@@ -247,7 +247,7 @@ export class PlayersPage {
   }
 
   filtered = computed(() => {
-    const q = this.search.toLowerCase();
+    const q = this.search().toLowerCase();
     return this.svc.players()
       .filter(p => p.name.toLowerCase().includes(q))
       .sort((a, b) => a.name.localeCompare(b.name, 'no'));
