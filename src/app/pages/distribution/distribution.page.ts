@@ -9,7 +9,8 @@ import { addIcons } from 'ionicons';
 import {
   refreshOutline, syncOutline, checkmarkCircleOutline, warningOutline,
   lockClosedOutline, lockOpenOutline, banOutline, calendarOutline,
-  chevronDownOutline, chevronUpOutline, personOutline, swapHorizontalOutline
+  chevronDownOutline, chevronUpOutline, personOutline, swapHorizontalOutline,
+  listOutline, copyOutline
 } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
 import { DistributionService } from '../../core/services/distribution.service';
@@ -36,6 +37,9 @@ import { Player } from '../../core/models/player.model';
       <ion-toolbar>
         <ion-title>Kampfordeling</ion-title>
         <ion-buttons slot="end">
+          <ion-button [disabled]="distribution().length === 0" (click)="jobModal.set(true)" title="Jobliste">
+            <ion-icon name="list-outline" />
+          </ion-button>
           <ion-button [disabled]="generating() || seasonsSvc.isActiveSeasonArchived()" (click)="regenerate()" title="Oppdater">
             <ion-icon name="refresh-outline" />
           </ion-button>
@@ -247,6 +251,45 @@ import { Player } from '../../core/models/player.model';
         </ion-content>
       </ng-template>
     </ion-modal>
+
+    <!-- Job list modal -->
+    <ion-modal [isOpen]="jobModal()" (didDismiss)="jobModal.set(false)">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Jobliste</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="jobModal.set(false)">Lukk</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="modal-content">
+          <p class="job-intro">Kopier spillerlisten for hver kamp og lim inn i Spond.</p>
+          @for (item of distribution(); track item.match.id) {
+            <div class="job-card">
+              <div class="job-header">
+                <div class="job-header-left">
+                  <span class="job-team">{{ getTeamName(item.match.teamId) }}</span>
+                  <span class="job-date">{{ item.match.date }} · {{ item.match.time }}</span>
+                  <span class="job-fixture">{{ item.match.homeTeam }} – {{ item.match.awayTeam }}</span>
+                </div>
+                <ion-button fill="clear" class="copy-btn" (click)="copyMatch(item)" title="Kopier">
+                  <ion-icon name="copy-outline" slot="icon-only" />
+                </ion-button>
+              </div>
+              <div class="job-players">
+                @for (p of item.players; track p.id; let i = $index) {
+                  <span class="job-player">{{ i + 1 }}. {{ p.name }}</span>
+                }
+                @if (item.players.length === 0) {
+                  <span class="job-empty">Ingen spillere fordelt</span>
+                }
+              </div>
+            </div>
+          }
+        </ion-content>
+      </ng-template>
+    </ion-modal>
   `,
   styles: [`
     ion-toolbar { --background: #0F172A; --color: #F8FAFC; }
@@ -320,6 +363,20 @@ import { Player } from '../../core/models/player.model';
     }
     .archived-banner ion-icon { font-size: 16px; flex-shrink: 0; }
     .modal-content { --background: #0F172A; }
+    .job-intro { font-size: 13px; color: #64748B; padding: 12px 16px 4px; margin: 0; }
+    .job-card {
+      background: #1E293B; border-radius: 14px; margin: 10px 12px;
+      padding: 14px; border-left: 3px solid #10B981;
+    }
+    .job-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+    .job-header-left { display: flex; flex-direction: column; gap: 2px; }
+    .job-team { font-size: 11px; font-weight: 700; color: #10B981; text-transform: uppercase; letter-spacing: 0.5px; }
+    .job-date { font-size: 12px; color: #64748B; }
+    .job-fixture { font-size: 14px; font-weight: 600; color: #F8FAFC; }
+    .copy-btn { --color: #64748B; --padding-start: 4px; --padding-end: 0; margin-top: -4px; }
+    .job-players { display: flex; flex-direction: column; gap: 4px; }
+    .job-player { font-size: 14px; color: #CBD5E1; padding: 2px 0; }
+    .job-empty { font-size: 13px; color: #475569; font-style: italic; }
     .override-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748B; letter-spacing: 1px; padding: 16px 16px 6px; }
     .override-list { background: #1E293B; border-radius: 14px; margin: 0 12px; overflow: hidden; }
     .override-item { --background: transparent; --color: #F8FAFC; --padding-start: 12px; }
@@ -349,6 +406,7 @@ export class DistributionPage {
   overrideModal = signal(false);
   overrideItem  = signal<DistributedMatch | null>(null);
   swapModal     = signal(false);
+  jobModal      = signal(false);
   swapMatchId   = signal('');
   swapFromId    = signal('');
 
@@ -369,6 +427,7 @@ export class DistributionPage {
       refreshOutline, syncOutline, checkmarkCircleOutline, warningOutline,
       lockClosedOutline, lockOpenOutline, banOutline, calendarOutline,
       chevronDownOutline, chevronUpOutline, personOutline, swapHorizontalOutline,
+      listOutline, copyOutline
     });
   }
 
@@ -501,6 +560,21 @@ export class DistributionPage {
 
   getMissing(item: DistributedMatch) {
     return Math.max(this.getRequired(item) - item.players.length, 0);
+  }
+
+  async copyMatch(item: DistributedMatch) {
+    const teamName = this.getTeamName(item.match.teamId);
+    const lines = [
+      `${teamName} – ${item.match.date} ${item.match.time}`,
+      `${item.match.homeTeam} – ${item.match.awayTeam}`,
+      '',
+      ...item.players.map((p, i) => `${i + 1}. ${p.name}`),
+    ];
+    await navigator.clipboard.writeText(lines.join('\n'));
+    const t = await this.toast.create({
+      message: 'Kopiert til utklippstavle', duration: 1800, color: 'success', position: 'top'
+    });
+    await t.present();
   }
 
   levelColor(level: number) {
