@@ -225,7 +225,9 @@ export class PlayersService {
       level: row.level,
       matchMatrix: row.match_matrix,
       seasonId: row.season_id,
-      available: row.available ?? true
+      available: row.available ?? true,
+      isHospitant: row.is_hospitant ?? false,
+      teamId: row.team_id ?? undefined
     });
   }
 
@@ -238,7 +240,9 @@ export class PlayersService {
       level: player.level,
       match_matrix: player.matchMatrix,
       season_id: player.seasonId,
-      available: player.available ?? true
+      available: player.available ?? true,
+      is_hospitant: player.isHospitant ?? false,
+      team_id: player.teamId ?? null
     };
   }
 
@@ -259,7 +263,9 @@ export class PlayersService {
       level: this.normalizeLevel(player.level),
       matchMatrix: this.ensureMatchMatrix(player),
       seasonId: player.seasonId,
-      available: player.available ?? true
+      available: player.available ?? true,
+      isHospitant: player.isHospitant ?? false,
+      teamId: player.teamId
     };
   }
 

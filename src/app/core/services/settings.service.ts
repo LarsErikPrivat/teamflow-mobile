@@ -123,7 +123,9 @@ export class SettingsService {
     ownTopUpCanUseAnyOwnLevel: row.own_top_up_can_use_any_own_level,
     usePositionsInDistribution: row.use_positions_in_distribution,
     defaultMatchMatrix: row.default_match_matrix,
-    teamRules: row.team_rules
+    teamRules: row.team_rules,
+    numberOfHospiteringLevels: row.number_of_hospitering_levels ?? row.number_of_levels ?? 3,
+    useSquadPriority: row.use_squad_priority ?? false,
   });
 }
 
@@ -142,7 +144,9 @@ export class SettingsService {
     own_top_up_can_use_any_own_level: settings.ownTopUpCanUseAnyOwnLevel,
     use_positions_in_distribution: settings.usePositionsInDistribution,
     default_match_matrix: settings.defaultMatchMatrix,
-    team_rules: settings.teamRules
+    team_rules: settings.teamRules,
+    number_of_hospitering_levels: settings.numberOfHospiteringLevels,
+    use_squad_priority: settings.useSquadPriority,
   };
 }
 
@@ -160,7 +164,9 @@ export class SettingsService {
       ownTopUpCanUseAnyOwnLevel: true,
       defaultMatchMatrix: this.createDefaultMatchMatrixSettings(),
       usePositionsInDistribution: false,
-      teamRules: []
+      teamRules: [],
+      numberOfHospiteringLevels: 3,
+      useSquadPriority: false,
     };
   }
 
@@ -240,6 +246,8 @@ export class SettingsService {
     ? value.usePositionsInDistribution
     : false,
       defaultMatchMatrix: this.normalizeDefaultMatchMatrix(value?.defaultMatchMatrix),
+      numberOfHospiteringLevels: this.normalizePositiveInt(value?.numberOfHospiteringLevels, value?.numberOfLevels ?? 3),
+      useSquadPriority: typeof value?.useSquadPriority === 'boolean' ? value.useSquadPriority : false,
      teamRules: Array.isArray(value?.teamRules)
   ? value.teamRules.map((rule) => ({
       teamId: rule.teamId ?? '',

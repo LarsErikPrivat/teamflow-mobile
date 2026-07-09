@@ -173,6 +173,14 @@ type Section = 'seasons' | 'general' | 'rules' | 'matrix' | 'positions';
             <ion-label>Topp-opp kan bruke alle egne nivåer</ion-label>
             <ion-toggle slot="end" [(ngModel)]="draft().ownTopUpCanUseAnyOwnLevel" (ngModelChange)="onDraftChange('ownTopUpCanUseAnyOwnLevel', $event)" color="success" [disabled]="archived()" />
           </ion-item>
+          <ion-item class="settings-item" lines="none">
+            <ion-label>Bruk stamlag som prioritet</ion-label>
+            <ion-toggle slot="end" [(ngModel)]="draft().useSquadPriority" (ngModelChange)="onDraftChange('useSquadPriority', $event)" color="success" [disabled]="archived()" />
+          </ion-item>
+          <ion-item class="settings-item" lines="none">
+            <ion-label>Antall hospiteringsnivåer</ion-label>
+            <ion-input slot="end" type="number" [(ngModel)]="draft().numberOfHospiteringLevels" (ngModelChange)="onDraftChange('numberOfHospiteringLevels', $event)" class="number-input" [disabled]="archived()" />
+          </ion-item>
         </ion-list>
       }
 

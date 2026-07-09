@@ -54,6 +54,11 @@ export class DistributionService {
       const team = teams.find((item) => item.id === match.teamId);
       const isHospiteringTeam = team?.isHospiteringTeam ?? false;
 
+      // Hospitant players may only play for own-team matches, never hospitering teams
+      const matchEligiblePlayers = isHospiteringTeam
+        ? orderedPlayers.filter((p) => !p.isHospitant)
+        : orderedPlayers;
+
       const rule = settings.teamRules.find((item) => item.teamId === match.teamId);
 
       const override = overrides.find((item) => item.matchId === match.id) ?? {
@@ -70,6 +75,7 @@ export class DistributionService {
 
       const bucket = getBucketForMatch(match, isHospiteringTeam);
       const totalRequired = this.getRequiredPlayersForMatch(match, isHospiteringTeam, settings, rule);
+      const squadTeamId = settings.useSquadPriority ? match.teamId : null;
 
       if (totalRequired === 0) {
         return {
@@ -81,7 +87,7 @@ export class DistributionService {
         };
       }
 
-      const lockedPlayers = orderedPlayers
+      const lockedPlayers = matchEligiblePlayers
         .filter((player) => lockedIds.has(player.id))
         .filter((player) => !excludedIds.has(player.id));
 
@@ -126,7 +132,7 @@ export class DistributionService {
             continue;
           }
 
-          let positionCandidates = orderedPlayers
+          let positionCandidates = matchEligiblePlayers
             .filter((player) => canPlayForBucket(player, bucket))
             .filter((player) => this.hasPosition(player, positionRule.positionId))
             .filter((player) => !excludedIds.has(player.id))
@@ -141,7 +147,7 @@ export class DistributionService {
           positionCandidates = [...positionCandidates].sort((a, b) =>
             this.comparePlayersForPosition(
               a, b, positionRule.positionId, bucket, match,
-              counters, totalPlayerCount, weeklyPlayerCount, playerIndex
+              counters, totalPlayerCount, weeklyPlayerCount, playerIndex, squadTeamId
             )
           );
 
@@ -164,7 +170,7 @@ export class DistributionService {
       const remainingNeeded = Math.max(totalRequired - selectedPlayers.length, 0);
 
       if (remainingNeeded > 0) {
-        let strictCandidates = orderedPlayers
+        let strictCandidates = matchEligiblePlayers
           .filter((player) => canPlayForBucket(player, bucket))
           .filter((player) => !excludedIds.has(player.id))
           .filter((player) => !selectedPlayers.some((selected) => selected.id === player.id))
@@ -185,14 +191,14 @@ export class DistributionService {
 
         strictCandidates = [...strictCandidates].sort((a, b) =>
           this.comparePlayersForBucket(
-            a, b, bucket, match, counters, totalPlayerCount, weeklyPlayerCount, playerIndex
+            a, b, bucket, match, counters, totalPlayerCount, weeklyPlayerCount, playerIndex, squadTeamId
           )
         );
 
         let picked = strictCandidates.slice(0, remainingNeeded);
 
         if (picked.length < remainingNeeded) {
-          let fallbackCandidates = orderedPlayers
+          let fallbackCandidates = matchEligiblePlayers
             .filter((player) => canPlayForBucket(player, bucket))
             .filter((player) => !excludedIds.has(player.id))
             .filter((player) => !selectedPlayers.some((selected) => selected.id === player.id))
@@ -206,7 +212,7 @@ export class DistributionService {
 
           fallbackCandidates = [...fallbackCandidates].sort((a, b) =>
             this.comparePlayersForBucketFallback(
-              a, b, bucket, match, counters, totalPlayerCount, weeklyPlayerCount, playerIndex
+              a, b, bucket, match, counters, totalPlayerCount, weeklyPlayerCount, playerIndex, squadTeamId
             )
           );
 
@@ -237,7 +243,7 @@ export class DistributionService {
       if (!isHospiteringTeam && selectedPlayers.length < settings.ownMatchMinimumPlayers) {
         const extraNeeded = settings.ownMatchMinimumPlayers - selectedPlayers.length;
 
-        let topUpCandidates = orderedPlayers
+        let topUpCandidates = matchEligiblePlayers
           .filter((player) => this.canPlayAnyOwnMatch(player))
           .filter((player) => !excludedIds.has(player.id))
           .filter((player) => !selectedPlayers.some((selected) => selected.id === player.id))
@@ -249,6 +255,12 @@ export class DistributionService {
           );
 
         topUpCandidates = [...topUpCandidates].sort((a, b) => {
+          if (squadTeamId) {
+            const aSquad = a.teamId === squadTeamId ? 0 : 1;
+            const bSquad = b.teamId === squadTeamId ? 0 : 1;
+            if (aSquad !== bSquad) return aSquad - bSquad;
+          }
+
           const aTotal = totalPlayerCount.get(a.id) ?? 0;
           const bTotal = totalPlayerCount.get(b.id) ?? 0;
 
@@ -360,7 +372,8 @@ export class DistributionService {
     counters: BucketCounters,
     totalPlayerCount: Map<string, number>,
     weeklyPlayerCount: Map<string, number>,
-    playerIndex: Map<string, number>
+    playerIndex: Map<string, number>,
+    squadTeamId: string | null
   ): number {
     const positionCompare =
       this.getPositionPriority(a, positionId) - this.getPositionPriority(b, positionId);
@@ -370,7 +383,7 @@ export class DistributionService {
     }
 
     return this.comparePlayersForBucket(
-      a, b, bucket, match, counters, totalPlayerCount, weeklyPlayerCount, playerIndex
+      a, b, bucket, match, counters, totalPlayerCount, weeklyPlayerCount, playerIndex, squadTeamId
     );
   }
 
@@ -382,8 +395,15 @@ export class DistributionService {
     counters: BucketCounters,
     totalPlayerCount: Map<string, number>,
     weeklyPlayerCount: Map<string, number>,
-    playerIndex: Map<string, number>
+    playerIndex: Map<string, number>,
+    squadTeamId: string | null = null
   ): number {
+    if (squadTeamId) {
+      const aSquad = a.teamId === squadTeamId ? 0 : 1;
+      const bSquad = b.teamId === squadTeamId ? 0 : 1;
+      if (aSquad !== bSquad) return aSquad - bSquad;
+    }
+
     const aCurrent = getBucketCount(counters, a.id, bucket);
     const bCurrent = getBucketCount(counters, b.id, bucket);
 
@@ -426,8 +446,15 @@ export class DistributionService {
     counters: BucketCounters,
     totalPlayerCount: Map<string, number>,
     weeklyPlayerCount: Map<string, number>,
-    playerIndex: Map<string, number>
+    playerIndex: Map<string, number>,
+    squadTeamId: string | null = null
   ): number {
+    if (squadTeamId) {
+      const aSquad = a.teamId === squadTeamId ? 0 : 1;
+      const bSquad = b.teamId === squadTeamId ? 0 : 1;
+      if (aSquad !== bSquad) return aSquad - bSquad;
+    }
+
     const aCurrent = getBucketCount(counters, a.id, bucket);
     const bCurrent = getBucketCount(counters, b.id, bucket);
 

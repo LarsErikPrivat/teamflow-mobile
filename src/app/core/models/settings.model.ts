@@ -36,4 +36,6 @@ export interface AppSettings {
   defaultMatchMatrix: DefaultMatchMatrixSettings;
   usePositionsInDistribution: boolean;
   teamRules: TeamRule[];
+  numberOfHospiteringLevels: number;
+  useSquadPriority: boolean;
 }

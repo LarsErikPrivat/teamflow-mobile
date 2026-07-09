@@ -80,7 +80,7 @@ import { Player } from '../../core/models/player.model';
               <div class="card-header" (click)="toggleExpanded(item.match.id)">
                 <div class="header-left">
                   <span class="team-name">{{ getTeamName(item.match.teamId) }}</span>
-                  <span class="match-date">{{ item.match.date }} · {{ item.match.time }}</span>
+                  <span class="match-date">Uke {{ getWeekNumber(item.match.date) }} · {{ item.match.date }} · {{ item.match.time }}</span>
                 </div>
                 <div class="header-right">
                   @if (getMissing(item) > 0) {
@@ -109,6 +109,15 @@ import { Player } from '../../core/models/player.model';
                 <ion-button fill="clear" size="small" class="copy-btn" (click)="openJoblist(item); $event.stopPropagation()" title="Jobliste">
                   <ion-icon name="list-outline" slot="icon-only" />
                 </ion-button>
+                @if (areAllPlayersLocked(item)) {
+                  <ion-button fill="clear" size="small" class="edit-btn" (click)="unlockAllPlayers(item); $event.stopPropagation()" title="Lås opp alle">
+                    <ion-icon name="lock-open-outline" slot="icon-only" />
+                  </ion-button>
+                } @else {
+                  <ion-button fill="clear" size="small" class="edit-btn" (click)="lockAllPlayers(item); $event.stopPropagation()" title="Lås alle">
+                    <ion-icon name="lock-closed-outline" slot="icon-only" />
+                  </ion-button>
+                }
                 <ion-button fill="clear" size="small" class="edit-btn" (click)="openOverride(item); $event.stopPropagation()">
                   Rediger
                 </ion-button>
@@ -582,6 +591,40 @@ export class DistributionPage {
 
   isLocked(matchId: string, playerId: string): boolean {
     return this.overridesSvc.getOverride(matchId).lockedPlayerIds.includes(playerId);
+  }
+
+  isPlayerLocked(matchId: string, playerId: string): boolean {
+    return this.isLocked(matchId, playerId);
+  }
+
+  getWeekNumber(dateStr: string): number {
+    const d = new Date(dateStr);
+    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    return Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  }
+
+  areAllPlayersLocked(item: DistributedMatch): boolean {
+    return item.players.length > 0 && item.players.every(p => this.isPlayerLocked(item.match.id, p.id));
+  }
+
+  async lockAllPlayers(item: DistributedMatch): Promise<void> {
+    for (const player of item.players) {
+      if (!this.isPlayerLocked(item.match.id, player.id)) {
+        await this.overridesSvc.toggleLockedPlayer(item.match.id, player.id);
+      }
+    }
+    await this.overridesSvc.load();
+  }
+
+  async unlockAllPlayers(item: DistributedMatch): Promise<void> {
+    for (const player of item.players) {
+      if (this.isPlayerLocked(item.match.id, player.id)) {
+        await this.overridesSvc.toggleLockedPlayer(item.match.id, player.id);
+      }
+    }
+    await this.overridesSvc.load();
   }
 
   async toggleLock(matchId: string, playerId: string) {

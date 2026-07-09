@@ -36,4 +36,10 @@ export interface Player {
 
   /** When false the player is skipped by the distribution algorithm entirely. */
   available: boolean;
+
+  /** True for players from the age group below who train/play up with this team. */
+  isHospitant: boolean;
+
+  /** Optional: the team this player is a core squad member of. */
+  teamId?: string;
 }

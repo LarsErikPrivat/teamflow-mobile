@@ -55,7 +55,7 @@ import { Player, PlayerLevel, PlayerMatchMatrix } from '../../core/models/player
             </div>
             <ion-label>
               <h2>{{ player.name }}</h2>
-              <ion-note>Nivå {{ player.level }} · {{ player.available ? 'Tilgjengelig' : 'Utilgjengelig' }}</ion-note>
+              <ion-note>{{ player.isHospitant ? 'Hospitant' : 'Nivå ' + player.level }} · {{ player.available ? 'Tilgjengelig' : 'Utilgjengelig' }}</ion-note>
             </ion-label>
             @if (!seasons.isActiveSeasonArchived()) {
               <ion-buttons slot="end">
@@ -112,9 +112,9 @@ import { Player, PlayerLevel, PlayerMatchMatrix } from '../../core/models/player
               fill="outline"
               interface="action-sheet"
             >
-              <ion-select-option [value]="1">Nivå 1</ion-select-option>
-              <ion-select-option [value]="2">Nivå 2</ion-select-option>
-              <ion-select-option [value]="3">Nivå 3</ion-select-option>
+              @for (lvl of levelOptions(); track lvl) {
+                <ion-select-option [value]="lvl">Nivå {{ lvl }}</ion-select-option>
+              }
             </ion-select>
           </div>
 
@@ -123,6 +123,15 @@ import { Player, PlayerLevel, PlayerMatchMatrix } from '../../core/models/player
             <ion-item class="toggle-item" lines="none">
               <ion-toggle [(ngModel)]="formAvailable" color="success">
                 {{ formAvailable ? 'Ja' : 'Nei' }}
+              </ion-toggle>
+            </ion-item>
+          </div>
+
+          <div class="form-section">
+            <div class="field-label">Hospitant</div>
+            <ion-item class="toggle-item" lines="none">
+              <ion-toggle [(ngModel)]="formIsHospitant" color="warning">
+                {{ formIsHospitant ? 'Ja' : 'Nei' }}
               </ion-toggle>
             </ion-item>
           </div>
@@ -240,7 +249,12 @@ export class PlayersPage {
   formName   = '';
   formLevel  = signal<PlayerLevel>(1);
   formAvailable = true;
+  formIsHospitant = false;
   formMatrix: PlayerMatchMatrix = this.defaultMatrix(1);
+
+  levelOptions = computed(() =>
+    Array.from({ length: this.settings.settings().numberOfLevels }, (_, i) => i + 1)
+  );
 
   constructor() {
     addIcons({ addOutline, pencilOutline, trashOutline, checkmarkOutline, lockClosedOutline });
@@ -263,6 +277,7 @@ export class PlayersPage {
     this.formName = '';
     this.formLevel.set(1);
     this.formAvailable = true;
+    this.formIsHospitant = false;
     this.formMatrix = this.defaultMatrix(1);
     this.modalOpen.set(true);
   }
@@ -273,6 +288,7 @@ export class PlayersPage {
     this.formName = player.name;
     this.formLevel.set(player.level);
     this.formAvailable = player.available;
+    this.formIsHospitant = player.isHospitant ?? false;
     this.formMatrix = { ...player.matchMatrix };
     this.modalOpen.set(true);
   }
@@ -291,6 +307,7 @@ export class PlayersPage {
       positions: [],
       level: this.formLevel(),
       available: this.formAvailable,
+      isHospitant: this.formIsHospitant,
       matchMatrix: {
         ownLevel1Target: Math.max(0, Number(this.formMatrix.ownLevel1Target) || 0),
         ownLevel2Target: Math.max(0, Number(this.formMatrix.ownLevel2Target) || 0),
