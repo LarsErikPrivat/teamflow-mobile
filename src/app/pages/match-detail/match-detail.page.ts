@@ -78,7 +78,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         <!-- SQUAD -->
         <div class="section">
           <div class="section-header">
-            <span class="section-title">STARTOPPSTILLING ({{ starters().length }})</span>
+            <span class="section-title">PÅ BANEN ({{ starters().length }})</span>
             <div style="display:flex;gap:8px">
               <button class="swap-btn" (click)="openSubstitution()">
                 <ion-icon name="swap-horizontal-outline" /> Innbytte
@@ -151,7 +151,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         @if (bench().length > 0) {
           <div class="section">
             <div class="section-header">
-              <span class="section-title">INNBYTTERE ({{ bench().length }})</span>
+              <span class="section-title">PÅ BENK ({{ bench().length }})</span>
             </div>
             <div class="player-list">
               @for (player of bench(); track player.id) {
@@ -275,7 +275,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           </ion-toolbar>
         </ion-header>
         <ion-content class="modal-content">
-          <div class="field-label">Spiller ut (startoppstilling)</div>
+          <div class="field-label">Spiller ut (på banen)</div>
           <div class="player-picker">
             @for (player of startersNotSwapped(); track player.id) {
               <button class="picker-player" [class.selected]="subOutId() === player.id" (click)="subOutId.set(player.id)">
@@ -283,7 +283,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               </button>
             }
           </div>
-          <div class="field-label" style="margin-top:16px">Spiller inn (innbyttere)</div>
+          <div class="field-label" style="margin-top:16px">Spiller inn (på benk)</div>
           <div class="player-picker">
             @for (player of bench(); track player.id) {
               <button class="picker-player" [class.selected]="subInId() === player.id" (click)="subInId.set(player.id)">
@@ -762,13 +762,20 @@ export class MatchDetailPage implements OnInit {
     const inId = this.subInId();
     if (!matchId || !outId || !inId) return;
     const outPlayer = this.allSquadPlayers().find(p => p.id === outId);
-    const inPlayer = this.playersSvc.players().find(p => p.id === inId);
+    const inPlayer = this.bench().find(p => p.id === inId);
     if (!inPlayer) return;
     this.eventsService.addOptimistic(matchId, 'substitution', {
       playerId: inId,
       playerName: inPlayer.name,
       minute: this.subMinute ?? undefined,
       note: `Inn: ${inPlayer.name}, Ut: ${outPlayer?.name ?? outId}`,
+    });
+    // Flytt ut-spiller til benk, inn-spiller til banen
+    this.starterIds.update(s => {
+      const next = new Set(s);
+      next.delete(outId);
+      next.add(inId);
+      return next;
     });
     this.substitutionModalOpen.set(false);
     this.showToast(`🔄 Inn: ${inPlayer.name} · Ut: ${outPlayer?.name}`, 'primary');
