@@ -193,7 +193,7 @@ export class EventsPage implements OnInit {
 
   eventLabel(event: MatchEvent): string {
     switch (event.eventType) {
-      case 'goal': return event.note === 'home' ? 'Mål hjem' : 'Mål borte';
+      case 'goal': return event.note === 'home' ? 'Mål hjemme' : 'Mål borte';
       case 'yellow_card': return 'Gult kort';
       case 'red_card': return 'Rødt kort';
       case 'substitution': return 'Innbytte';

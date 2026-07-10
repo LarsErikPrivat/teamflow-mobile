@@ -59,7 +59,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         <div class="actions-row">
           <button class="action-btn goal-home" (click)="openEvent('goal_home')">
             <ion-icon name="football-outline" />
-            <span>Mål hjem</span>
+            <span>Mål hjemme</span>
           </button>
           <button class="action-btn goal-away" (click)="quickGoal('away')">
             <ion-icon name="football-outline" />
@@ -207,7 +207,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       <ng-template>
         <ion-header>
           <ion-toolbar>
-            <ion-title>{{ pendingAction() === 'goal_home' ? 'Mål hjem' : pendingAction() === 'yellow' ? 'Gult kort' : 'Rødt kort' }}</ion-title>
+            <ion-title>{{ pendingAction() === 'goal_home' ? 'Mål hjemme' : pendingAction() === 'yellow' ? 'Gult kort' : 'Rødt kort' }}</ion-title>
             <ion-buttons slot="end">
               <ion-button (click)="eventModalOpen.set(false)">
                 <ion-icon name="close-outline" />
@@ -657,7 +657,7 @@ export class MatchDetailPage implements OnInit {
     const matchId = this.item()?.match.id;
     if (!matchId) return;
     this.eventsService.addOptimistic(matchId, 'goal', { note: side });
-    this.showToast(side === 'home' ? '⚽ Mål hjem!' : '⚽ Mål borte!', 'success');
+    this.showToast(side === 'home' ? '⚽ Mål hjemme!' : '⚽ Mål borte!', 'success');
   }
 
   openEvent(type: 'yellow' | 'red' | 'goal_home') {
@@ -680,7 +680,7 @@ export class MatchDetailPage implements OnInit {
         note: 'home',
       });
       this.eventModalOpen.set(false);
-      this.showToast('⚽ Mål hjem!', 'success');
+      this.showToast('⚽ Mål hjemme!', 'success');
       return;
     }
     const type: MatchEventType = action === 'yellow' ? 'yellow_card' : 'red_card';
@@ -793,7 +793,7 @@ export class MatchDetailPage implements OnInit {
 
   eventLabel(event: MatchEvent): string {
     switch (event.eventType) {
-      case 'goal': return event.note === 'home' ? 'Mål hjem' : 'Mål borte';
+      case 'goal': return event.note === 'home' ? 'Mål hjemme' : 'Mål borte';
       case 'yellow_card': return 'Gult kort';
       case 'red_card': return 'Rødt kort';
       case 'substitution': return event.note ?? 'Innbytte';
