@@ -176,6 +176,12 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               @for (event of matchEvents; track event.id) {
                 <div class="event-row">
                   <span class="event-icon">{{ eventIcon(event) }}</span>
+                  <span class="event-shirt">
+                    <ion-icon name="shirt-outline" class="shirt-icon" />
+                    @if (playerNumber(event.playerId); as num) {
+                      <span class="shirt-num">{{ num }}</span>
+                    }
+                  </span>
                   <div class="event-info">
                     <span class="event-label">{{ eventLabel(event) }}</span>
                     @if (event.playerName) {
@@ -423,6 +429,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       background: #1E293B; border-radius: 10px; padding: 10px 12px;
     }
     .event-icon { font-size: 20px; flex-shrink: 0; }
+    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; }
     .event-info { flex: 1; }
     .event-label { display: block; font-size: 13px; font-weight: 700; color: #F8FAFC; }
     .event-player { display: block; font-size: 11px; color: #64748B; }
@@ -484,6 +491,12 @@ export class MatchDetailPage implements OnInit {
   readonly presentIds = signal<Set<string>>(new Set());
   readonly absentIds = signal<Set<string>>(new Set());
   readonly swappedInPlayers = signal<{ player: Player; replacedName: string }[]>([]);
+  private readonly allClientPlayers = signal<Player[]>([]);
+
+  playerNumber(playerId: string | undefined): number | undefined {
+    if (!playerId) return undefined;
+    return this.allClientPlayers().find(p => p.id === playerId)?.number;
+  }
 
   readonly teamColor = computed(() => {
     const teamId = this.item()?.match.teamId;
@@ -573,6 +586,7 @@ export class MatchDetailPage implements OnInit {
 
     // Load all players across all seasons/teams so jersey numbers are global
     const allPlayers = await this.playersSvc.loadAllForClient();
+    this.allClientPlayers.set(allPlayers);
     this.item.update(current => {
       if (!current) return current;
 
