@@ -78,7 +78,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         <!-- SQUAD -->
         <div class="section">
           <div class="section-header">
-            <span class="section-title">LAG ({{ presentCount() }}/{{ item()!.players.length + swappedInPlayers().length }})</span>
+            <span class="section-title">STARTOPPSTILLING ({{ starters().length }})</span>
             <div style="display:flex;gap:8px">
               <button class="swap-btn" (click)="openSubstitution()">
                 <ion-icon name="swap-horizontal-outline" /> Innbytte
@@ -90,58 +90,47 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           </div>
 
           <div class="player-list">
-            @for (player of item()!.players; track player.id) {
-              @let present = isPresent(player.id);
+            @for (player of starters(); track player.id) {
               @let absent = isAbsent(player.id);
               @let cards = playerStats().get(player.id);
-              <div
-                class="player-row"
-                [class.present]="present"
-                [class.absent]="absent"
-                (click)="toggleAttendance(player)"
-              >
-                <div class="player-avatar" [style.background]="present ? '#10B981' : absent ? '#EF444422' : '#1E293B'">
-                  @if (present) {
-                    <ion-icon name="checkmark-circle" style="color: white; font-size: 20px" />
-                  } @else if (player.number) {
+              <div class="player-row starter" [class.absent]="absent" (click)="toggleStarter(player)">
+                <div class="player-avatar starter-avatar" [style.background]="absent ? '#EF444422' : '#10B98122'">
+                  @if (player.number) {
                     <span class="shirt-number">
-                      <ion-icon name="shirt-outline" class="shirt-icon" />
-                      <span class="shirt-num">{{ player.number }}</span>
+                      <ion-icon name="shirt-outline" class="shirt-icon" style="color:#10B981" />
+                      <span class="shirt-num" style="color:#10B981">{{ player.number }}</span>
                     </span>
                   } @else {
-                    <span style="color: #94A3B8; font-weight: 700">{{ player.name.charAt(0) }}</span>
+                    <span style="color: #10B981; font-weight: 700">{{ player.name.charAt(0) }}</span>
                   }
                 </div>
                 <div class="player-info">
                   <span class="player-name" [class.absent-name]="absent">{{ player.name }}</span>
-                  @if (isSwapped(player.id)) {
-                    <span class="swap-tag">Byttet ut</span>
-                  }
+                  @if (isSwapped(player.id)) { <span class="swap-tag">Byttet ut</span> }
+                  @if (absent) { <span class="swap-tag" style="color:#EF4444">Meldt forfall</span> }
                 </div>
                 @if (cards) {
                   <div class="card-badges">
-                    @for (_ of yellowArr(cards.goals); track $index) {
-                      <span class="card-badge">⚽</span>
-                    }
-                    @for (_ of yellowArr(cards.yellow); track $index) {
-                      <span class="card-badge">🟨</span>
-                    }
-                    @for (_ of redArr(cards.red); track $index) {
-                      <span class="card-badge">🟥</span>
-                    }
+                    @for (_ of yellowArr(cards.goals); track $index) { <span class="card-badge">⚽</span> }
+                    @for (_ of yellowArr(cards.yellow); track $index) { <span class="card-badge">🟨</span> }
+                    @for (_ of redArr(cards.red); track $index) { <span class="card-badge">🟥</span> }
                   </div>
-                }
-                @if (absent) {
-                  <span class="absent-tag">Meldt forfall</span>
                 }
               </div>
             }
 
             @for (swap of swappedInPlayers(); track swap.player.id) {
               @let cards = playerStats().get(swap.player.id);
-              <div class="player-row present swap-in">
-                <div class="player-avatar" style="background: #10B981">
-                  <ion-icon name="checkmark-circle" style="color: white; font-size: 20px" />
+              <div class="player-row starter">
+                <div class="player-avatar starter-avatar" style="background: #10B98122">
+                  @if (swap.player.number) {
+                    <span class="shirt-number">
+                      <ion-icon name="shirt-outline" class="shirt-icon" style="color:#10B981" />
+                      <span class="shirt-num" style="color:#10B981">{{ swap.player.number }}</span>
+                    </span>
+                  } @else {
+                    <span style="color: #10B981; font-weight: 700">{{ swap.player.name.charAt(0) }}</span>
+                  }
                 </div>
                 <div class="player-info">
                   <span class="player-name">{{ swap.player.name }}</span>
@@ -149,21 +138,50 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                 </div>
                 @if (cards) {
                   <div class="card-badges">
-                    @for (_ of yellowArr(cards.goals); track $index) {
-                      <span class="card-badge">⚽</span>
-                    }
-                    @for (_ of yellowArr(cards.yellow); track $index) {
-                      <span class="card-badge">🟨</span>
-                    }
-                    @for (_ of redArr(cards.red); track $index) {
-                      <span class="card-badge">🟥</span>
-                    }
+                    @for (_ of yellowArr(cards.goals); track $index) { <span class="card-badge">⚽</span> }
+                    @for (_ of yellowArr(cards.yellow); track $index) { <span class="card-badge">🟨</span> }
+                    @for (_ of redArr(cards.red); track $index) { <span class="card-badge">🟥</span> }
                   </div>
                 }
               </div>
             }
           </div>
         </div>
+
+        @if (bench().length > 0) {
+          <div class="section">
+            <div class="section-header">
+              <span class="section-title">INNBYTTERE ({{ bench().length }})</span>
+            </div>
+            <div class="player-list">
+              @for (player of bench(); track player.id) {
+                @let cards = playerStats().get(player.id);
+                <div class="player-row" (click)="toggleStarter(player)">
+                  <div class="player-avatar" style="background: #1E293B">
+                    @if (player.number) {
+                      <span class="shirt-number">
+                        <ion-icon name="shirt-outline" class="shirt-icon" />
+                        <span class="shirt-num">{{ player.number }}</span>
+                      </span>
+                    } @else {
+                      <span style="color: #94A3B8; font-weight: 700">{{ player.name.charAt(0) }}</span>
+                    }
+                  </div>
+                  <div class="player-info">
+                    <span class="player-name">{{ player.name }}</span>
+                  </div>
+                  @if (cards) {
+                    <div class="card-badges">
+                      @for (_ of yellowArr(cards.goals); track $index) { <span class="card-badge">⚽</span> }
+                      @for (_ of yellowArr(cards.yellow); track $index) { <span class="card-badge">🟨</span> }
+                      @for (_ of redArr(cards.red); track $index) { <span class="card-badge">🟥</span> }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
 
         <!-- EVENT LOG -->
         @let matchEvents = eventsService.eventsForMatch(item()!.match.id);
@@ -257,22 +275,20 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           </ion-toolbar>
         </ion-header>
         <ion-content class="modal-content">
-          <div class="field-label">Spiller ut</div>
+          <div class="field-label">Spiller ut (startoppstilling)</div>
           <div class="player-picker">
-            @for (player of allSquadPlayers(); track player.id) {
+            @for (player of startersNotSwapped(); track player.id) {
               <button class="picker-player" [class.selected]="subOutId() === player.id" (click)="subOutId.set(player.id)">
                 {{ player.name }}
               </button>
             }
           </div>
-          <div class="field-label" style="margin-top:16px">Spiller inn</div>
+          <div class="field-label" style="margin-top:16px">Spiller inn (innbyttere)</div>
           <div class="player-picker">
-            @for (player of allSquadPlayers(); track player.id) {
-              @if (player.id !== subOutId()) {
-                <button class="picker-player" [class.selected]="subInId() === player.id" (click)="subInId.set(player.id)">
-                  {{ player.name }}
-                </button>
-              }
+            @for (player of bench(); track player.id) {
+              <button class="picker-player" [class.selected]="subInId() === player.id" (click)="subInId.set(player.id)">
+                {{ player.name }}
+              </button>
             }
           </div>
           <div class="field-label" style="margin-top:16px">Minutt (valgfritt)</div>
@@ -398,7 +414,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       background: #1E293B; border-radius: 12px; padding: 10px 14px;
       border: 1.5px solid #334155; cursor: pointer;
     }
-    .player-row.present { border-color: #059669; }
+    .player-row.starter { border-color: #059669; }
     .player-row.absent { border-color: #EF4444; opacity: 0.7; }
     .player-row.swap-in { border-color: #0284c7; }
     .player-avatar {
@@ -488,6 +504,7 @@ export class MatchDetailPage implements OnInit {
   readonly subInId = signal('');
   subMinute: number | null = null;
 
+  readonly starterIds = signal<Set<string>>(new Set());
   readonly presentIds = signal<Set<string>>(new Set());
   readonly absentIds = signal<Set<string>>(new Set());
   readonly swappedInPlayers = signal<{ player: Player; replacedName: string }[]>([]);
@@ -510,7 +527,7 @@ export class MatchDetailPage implements OnInit {
     return this.teamsSvc.teams().find(t => t.id === teamId)?.name ?? '';
   });
 
-  readonly presentCount = computed(() => this.presentIds().size);
+  readonly presentCount = computed(() => this.starterIds().size);
 
   readonly homeGoals = computed(() =>
     this.eventsService.eventsForMatch(this.item()?.match.id ?? '')
@@ -541,6 +558,22 @@ export class MatchDetailPage implements OnInit {
     ...this.swappedInPlayers().map(s => s.player)
   ]);
 
+  readonly starters = computed((): Player[] => {
+    const ids = this.starterIds();
+    return (this.item()?.players ?? []).filter(p => ids.has(p.id));
+  });
+
+  readonly bench = computed((): Player[] => {
+    const ids = this.starterIds();
+    const swappedInIds = new Set(this.swappedInPlayers().map(s => s.player.id));
+    return (this.item()?.players ?? []).filter(p => !ids.has(p.id) && !swappedInIds.has(p.id));
+  });
+
+  readonly startersNotSwapped = computed((): Player[] => {
+    const swappedOutIds = this.absentIds();
+    return this.starters().filter(p => !swappedOutIds.has(p.id));
+  });
+
   readonly availableReplacements = computed((): Player[] => {
     const assignedIds = new Set([
       ...(this.item()?.players ?? []).map(p => p.id),
@@ -548,6 +581,15 @@ export class MatchDetailPage implements OnInit {
     ]);
     return this.playersSvc.players().filter(p => !assignedIds.has(p.id) && p.available !== false);
   });
+
+  toggleStarter(player: Player) {
+    if (this.isAbsent(player.id)) return;
+    this.starterIds.update(s => {
+      const next = new Set(s);
+      next.has(player.id) ? next.delete(player.id) : next.add(player.id);
+      return next;
+    });
+  }
 
   constructor() {
     addIcons({
