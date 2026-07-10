@@ -7,31 +7,28 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login.page').then(m => m.LoginPage),
   },
   {
+    path: 'match/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/match-detail/match-detail.page').then(m => m.MatchDetailPage),
+  },
+  {
     path: 'tabs',
     canActivate: [authGuard],
     loadComponent: () => import('./tabs/tabs.page').then(m => m.TabsPage),
     children: [
       {
-        path: 'dashboard',
-        loadComponent: () => import('./pages/dashboard/dashboard.page').then(m => m.DashboardPage),
+        path: 'today',
+        loadComponent: () => import('./pages/today/today.page').then(m => m.TodayPage),
       },
       {
-        path: 'players',
-        loadComponent: () => import('./pages/players/players.page').then(m => m.PlayersPage),
-      },
-      {
-        path: 'matches',
-        loadComponent: () => import('./pages/matches/matches.page').then(m => m.MatchesPage),
-      },
-      {
-        path: 'distribution',
-        loadComponent: () => import('./pages/distribution/distribution.page').then(m => m.DistributionPage),
+        path: 'events',
+        loadComponent: () => import('./pages/events/events.page').then(m => m.EventsPage),
       },
       {
         path: 'settings',
         loadComponent: () => import('./pages/settings/settings.page').then(m => m.SettingsPage),
       },
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: '', redirectTo: 'today', pathMatch: 'full' },
     ],
   },
   { path: '', redirectTo: 'tabs', pathMatch: 'full' },

@@ -3,7 +3,7 @@ import {
   IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { homeOutline, peopleOutline, calendarOutline, gitNetworkOutline, settingsOutline } from 'ionicons/icons';
+import { todayOutline, listOutline, settingsOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-tabs',
@@ -12,21 +12,13 @@ import { homeOutline, peopleOutline, calendarOutline, gitNetworkOutline, setting
   template: `
     <ion-tabs>
       <ion-tab-bar slot="bottom">
-        <ion-tab-button tab="dashboard" href="/tabs/dashboard">
-          <ion-icon name="home-outline" />
-          <ion-label>Hjem</ion-label>
+        <ion-tab-button tab="today" href="/tabs/today">
+          <ion-icon name="today-outline" />
+          <ion-label>I dag</ion-label>
         </ion-tab-button>
-        <ion-tab-button tab="players" href="/tabs/players">
-          <ion-icon name="people-outline" />
-          <ion-label>Spillere</ion-label>
-        </ion-tab-button>
-        <ion-tab-button tab="matches" href="/tabs/matches">
-          <ion-icon name="calendar-outline" />
-          <ion-label>Kamper</ion-label>
-        </ion-tab-button>
-        <ion-tab-button tab="distribution" href="/tabs/distribution">
-          <ion-icon name="git-network-outline" />
-          <ion-label>Fordeling</ion-label>
+        <ion-tab-button tab="events" href="/tabs/events">
+          <ion-icon name="list-outline" />
+          <ion-label>Hendelser</ion-label>
         </ion-tab-button>
         <ion-tab-button tab="settings" href="/tabs/settings">
           <ion-icon name="settings-outline" />
@@ -46,6 +38,6 @@ import { homeOutline, peopleOutline, calendarOutline, gitNetworkOutline, setting
 })
 export class TabsPage {
   constructor() {
-    addIcons({ homeOutline, peopleOutline, calendarOutline, gitNetworkOutline, settingsOutline });
+    addIcons({ todayOutline, listOutline, settingsOutline });
   }
 }

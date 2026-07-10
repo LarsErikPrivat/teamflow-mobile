@@ -42,4 +42,7 @@ export interface Player {
 
   /** Optional: the team this player is a core squad member of. */
   teamId?: string;
+
+  /** Jersey number. */
+  number?: number;
 }

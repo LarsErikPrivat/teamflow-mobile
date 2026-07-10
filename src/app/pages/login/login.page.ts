@@ -152,7 +152,7 @@ export class LoginPage {
     this.error.set('');
     try {
       await this.auth.login(this.email, this.password);
-      await this.router.navigate(['/tabs/dashboard']);
+      await this.router.navigate(['/tabs/today']);
     } catch (e: any) {
       this.error.set(e?.message ?? 'Innlogging feilet.');
     } finally {

@@ -45,6 +45,16 @@ export class PlayersService {
     this.players.set(normalized);
   }
 
+  async loadAllForClient(): Promise<Player[]> {
+    const clientId = this.clientService.requireClientId();
+    const { data, error } = await this.supabase.client
+      .from('players')
+      .select('id, name, jersey_number')
+      .eq('client_id', clientId);
+    if (error) return [];
+    return (data ?? []).map((row: any) => ({ id: row.id, name: row.name, number: row.jersey_number ?? undefined } as Player));
+  }
+
   async add(player: Player): Promise<void> {
     if (!this.seasonsService.ensureSeasonWritable()) {
       return;
@@ -227,7 +237,8 @@ export class PlayersService {
       seasonId: row.season_id,
       available: row.available ?? true,
       isHospitant: row.is_hospitant ?? false,
-      teamId: row.team_id ?? undefined
+      teamId: row.team_id ?? undefined,
+      number: row.jersey_number ?? undefined,
     });
   }
 
@@ -242,7 +253,8 @@ export class PlayersService {
       season_id: player.seasonId,
       available: player.available ?? true,
       is_hospitant: player.isHospitant ?? false,
-      team_id: player.teamId ?? null
+      team_id: player.teamId ?? null,
+      jersey_number: player.number ?? null,
     };
   }
 
