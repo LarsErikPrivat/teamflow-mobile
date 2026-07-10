@@ -16,6 +16,7 @@ import { MatchEventsService } from '../../core/services/match-events.service';
 import { PlayersService } from '../../core/services/players.service';
 import { TeamsService } from '../../core/services/teams.service';
 import { SeasonsService } from '../../core/services/season.service';
+import { MatchesService } from '../../core/services/matches.service';
 import { DistributionSnapshotsService } from '../../core/services/distribution-snaphsot.service';
 import { DistributedMatch } from '../../core/models/distributed-match.model';
 import { Player } from '../../core/models/player.model';
@@ -500,6 +501,7 @@ export class MatchDetailPage implements OnInit {
   private readonly teamsSvc = inject(TeamsService);
   private readonly seasonsSvc = inject(SeasonsService);
   private readonly snapshotSvc = inject(DistributionSnapshotsService);
+  private readonly matchesSvc = inject(MatchesService);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastController);
   private readonly alert = inject(AlertController);
@@ -650,6 +652,7 @@ export class MatchDetailPage implements OnInit {
       this.seasonsSvc.load(),
       this.playersSvc.load(),
       this.teamsSvc.load(),
+      this.matchesSvc.load(),
     ]);
 
     // Always reload fresh snapshot from Supabase — picks up forfall changes from previous sessions
@@ -657,7 +660,9 @@ export class MatchDetailPage implements OnInit {
       const snapshots = await this.snapshotSvc.load();
       const fresh = snapshots.find(s => s.match.id === matchId);
       if (fresh) {
-        this.item.set(fresh);
+        // Patch date/time from live matches table so changes take effect without re-running fordeling
+        const live = this.matchesSvc.matches().find(m => m.id === matchId);
+        this.item.set(live ? { ...fresh, match: { ...fresh.match, date: live.date, time: live.time } } : fresh);
       }
     }
 
