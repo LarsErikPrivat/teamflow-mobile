@@ -660,11 +660,19 @@ export class MatchDetailPage implements OnInit {
     this.showToast(side === 'home' ? '⚽ Mål hjemme!' : '⚽ Mål borte!', 'success');
   }
 
+  private suggestMinute(): number | null {
+    const match = this.item()?.match;
+    if (!match?.date || !match?.time) return null;
+    const start = new Date(`${match.date}T${match.time}`);
+    const elapsed = Math.floor((Date.now() - start.getTime()) / 60000);
+    return elapsed >= 1 && elapsed <= 120 ? elapsed : null;
+  }
+
   openEvent(type: 'yellow' | 'red' | 'goal_home') {
     this.pendingAction.set(type);
     this.selectedPlayerId.set('');
     this.selectedPlayerName.set('');
-    this.pendingMinute = null;
+    this.pendingMinute = this.suggestMinute();
     this.eventModalOpen.set(true);
   }
 
@@ -702,7 +710,7 @@ export class MatchDetailPage implements OnInit {
   openSubstitution() {
     this.subOutId.set('');
     this.subInId.set('');
-    this.subMinute = null;
+    this.subMinute = this.suggestMinute();
     this.substitutionModalOpen.set(true);
   }
 
