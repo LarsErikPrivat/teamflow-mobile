@@ -10,6 +10,7 @@ import { DistributionSnapshotsService } from '../../core/services/distribution-s
 import { MatchEventsService } from '../../core/services/match-events.service';
 import { TeamsService } from '../../core/services/teams.service';
 import { SeasonsService } from '../../core/services/season.service';
+import { MatchesService } from '../../core/services/matches.service';
 import { DistributedMatch } from '../../core/models/distributed-match.model';
 
 @Component({
@@ -275,6 +276,7 @@ export class TodayPage implements OnInit {
   private readonly teamsSvc = inject(TeamsService);
   readonly eventsService = inject(MatchEventsService);
   private readonly seasonsSvc = inject(SeasonsService);
+  private readonly matchesSvc = inject(MatchesService);
   private readonly router = inject(Router);
 
   readonly loading = signal(true);
@@ -311,8 +313,16 @@ export class TodayPage implements OnInit {
       this.snapshotSvc.load(),
       this.teamsSvc.load(),
       this.eventsService.load(),
+      this.matchesSvc.load(),
     ]);
-    this.allMatches.set(matches);
+    // Patch date/time from live matches table so changes take effect without re-running fordeling
+    const liveMatches = this.matchesSvc.matches();
+    const patched = matches.map(dm => {
+      const live = liveMatches.find(m => m.id === dm.match.id);
+      if (!live) return dm;
+      return { ...dm, match: { ...dm.match, date: live.date, time: live.time } };
+    });
+    this.allMatches.set(patched);
     this.loading.set(false);
   }
 
