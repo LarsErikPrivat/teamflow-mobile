@@ -77,18 +77,20 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
 
         <!-- SQUAD -->
         <div class="section">
-          <div class="section-header">
+          <div class="section-header" (click)="showOnField.set(!showOnField())">
             <span class="section-title">PÅ BANEN ({{ starters().length }})</span>
-            <div style="display:flex;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px" (click)="$event.stopPropagation()">
               <button class="swap-btn" (click)="openSubstitution()">
                 <ion-icon name="swap-horizontal-outline" /> Innbytte
               </button>
               <button class="swap-btn forfeit-btn" (click)="openSwap()">
                 <ion-icon name="close-outline" /> Meld forfall
               </button>
+              <ion-icon name="chevron-down-outline" class="chevron" [class.rotated]="!showOnField()" />
             </div>
           </div>
 
+          @if (showOnField()) {
           <div class="player-list">
             @for (player of starters(); track player.id) {
               @let absent = isAbsent(player.id);
@@ -146,13 +148,16 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               </div>
             }
           </div>
+          }
         </div>
 
         @if (bench().length > 0) {
           <div class="section">
-            <div class="section-header">
+            <div class="section-header" (click)="showBench.set(!showBench())">
               <span class="section-title">PÅ BENK ({{ bench().length }})</span>
+              <ion-icon name="chevron-down-outline" class="chevron" [class.rotated]="!showBench()" />
             </div>
+            @if (showBench()) {
             <div class="player-list">
               @for (player of bench(); track player.id) {
                 @let cards = playerStats().get(player.id);
@@ -180,6 +185,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                 </div>
               }
             </div>
+            }
           </div>
         }
 
@@ -187,9 +193,11 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         @let matchEvents = eventsService.eventsForMatch(item()!.match.id);
         @if (matchEvents.length > 0) {
           <div class="section">
-            <div class="section-header">
-              <span class="section-title">HENDELSER</span>
+            <div class="section-header" (click)="showEvents.set(!showEvents())">
+              <span class="section-title">HENDELSER ({{ matchEvents.length }})</span>
+              <ion-icon name="chevron-down-outline" class="chevron" [class.rotated]="!showEvents()" />
             </div>
+            @if (showEvents()) {
             <div class="event-log">
               @for (event of matchEvents; track event.id) {
                 <div class="event-row">
@@ -215,6 +223,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                 </div>
               }
             </div>
+            }
           </div>
         }
       }
@@ -394,11 +403,16 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .section { padding: 0 16px 16px; }
     .section-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 0 8px;
+      padding: 12px 0 8px; cursor: pointer; user-select: none;
     }
     .section-title {
       font-size: 11px; font-weight: 800; letter-spacing: 0.1em; color: #475569;
     }
+    .chevron {
+      font-size: 16px; color: #475569;
+      transition: transform 0.2s ease;
+    }
+    .chevron.rotated { transform: rotate(-90deg); }
     .swap-btn {
       display: flex; align-items: center; gap: 4px;
       background: #1E293B; border: 1px solid #334155; border-radius: 999px;
@@ -505,6 +519,9 @@ export class MatchDetailPage implements OnInit {
   subMinute: number | null = null;
 
   readonly starterIds = signal<Set<string>>(new Set());
+  readonly showOnField = signal(true);
+  readonly showBench = signal(true);
+  readonly showEvents = signal(true);
   readonly presentIds = signal<Set<string>>(new Set());
   readonly absentIds = signal<Set<string>>(new Set());
   readonly swappedInPlayers = signal<{ player: Player; replacedName: string }[]>([]);
