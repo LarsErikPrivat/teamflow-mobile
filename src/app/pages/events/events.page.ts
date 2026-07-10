@@ -1,21 +1,25 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
-  IonRefresher, IonRefresherContent
+  IonRefresher, IonRefresherContent, IonIcon
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { shirtOutline } from 'ionicons/icons';
 import { MatchEventsService } from '../../core/services/match-events.service';
 import { DistributionSnapshotsService } from '../../core/services/distribution-snaphsot.service';
 import { SeasonsService } from '../../core/services/season.service';
 import { TeamsService } from '../../core/services/teams.service';
+import { PlayersService } from '../../core/services/players.service';
 import { MatchEvent } from '../../core/models/match-event.model';
 import { DistributedMatch } from '../../core/models/distributed-match.model';
+import { Player } from '../../core/models/player.model';
 
 @Component({
   selector: 'app-events',
   standalone: true,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonContent,
-    IonRefresher, IonRefresherContent
+    IonRefresher, IonRefresherContent, IonIcon
   ],
   template: `
     <ion-header>
@@ -47,6 +51,12 @@ import { DistributedMatch } from '../../core/models/distributed-match.model';
                 @for (event of group.events; track event.id) {
                   <div class="event-row">
                     <span class="event-icon">{{ eventIcon(event) }}</span>
+                    <span class="event-shirt">
+                      <ion-icon name="shirt-outline" class="shirt-icon" />
+                      @if (playerNumber(event.playerId); as num) {
+                        <span class="shirt-num">{{ num }}</span>
+                      }
+                    </span>
                     <div class="event-body">
                       <span class="event-type">{{ eventLabel(event) }}</span>
                       @if (event.eventType === 'emergency_replacement' || event.eventType === 'substitution') {
@@ -100,6 +110,9 @@ import { DistributedMatch } from '../../core/models/distributed-match.model';
       border: 1px solid #334155;
     }
     .event-icon { font-size: 20px; flex-shrink: 0; }
+    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; }
+    .shirt-icon { font-size: 28px; color: #475569; }
+    .shirt-num { position: absolute; font-size: 9px; font-weight: 900; color: #F8FAFC; margin-top: 4px; }
     .event-body { flex: 1; min-width: 0; }
     .event-type { display: block; font-size: 13px; font-weight: 700; color: #F8FAFC; }
     .event-player { display: block; font-size: 12px; color: #94A3B8; }
@@ -112,6 +125,9 @@ export class EventsPage implements OnInit {
   private readonly eventsService = inject(MatchEventsService);
   private readonly snapshotSvc = inject(DistributionSnapshotsService);
   private readonly seasonsSvc = inject(SeasonsService);
+  private readonly playersSvc = inject(PlayersService);
+
+  private allClientPlayers = signal<Player[]>([]);
 
   readonly allMatches = signal<DistributedMatch[]>([]);
 
@@ -137,14 +153,21 @@ export class EventsPage implements OnInit {
     }).sort((a, b) => b.matchDate.localeCompare(a.matchDate));
   });
 
+  constructor() { addIcons({ shirtOutline }); }
+
+  playerNumber(playerId: string | undefined): number | undefined {
+    if (!playerId) return undefined;
+    return this.allClientPlayers().find(p => p.id === playerId)?.number;
+  }
+
   async ngOnInit() {
     const matches = await this.snapshotSvc.load();
     this.allMatches.set(matches);
-    // Load from Supabase only if signal is empty (first launch, not coming from match-detail)
     if (this.eventsService.events().length === 0) {
       await this.seasonsSvc.load();
       await this.eventsService.load();
     }
+    this.allClientPlayers.set(await this.playersSvc.loadAllForClient());
   }
 
   async refresh(event: any) {
