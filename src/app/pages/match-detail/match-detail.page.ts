@@ -519,6 +519,21 @@ export class MatchDetailPage implements OnInit {
   subMinute: number | null = null;
 
   readonly starterIds = signal<Set<string>>(new Set());
+  private starterStorageKey = '';
+
+  private loadStarterIds(matchId: string) {
+    this.starterStorageKey = `starters_${matchId}`;
+    const raw = localStorage.getItem(this.starterStorageKey);
+    if (raw) {
+      try { this.starterIds.set(new Set(JSON.parse(raw))); } catch {}
+    }
+  }
+
+  private saveStarterIds() {
+    if (this.starterStorageKey) {
+      localStorage.setItem(this.starterStorageKey, JSON.stringify([...this.starterIds()]));
+    }
+  }
   readonly showOnField = signal(true);
   readonly showBench = signal(true);
   readonly showEvents = signal(true);
@@ -606,6 +621,7 @@ export class MatchDetailPage implements OnInit {
       next.has(player.id) ? next.delete(player.id) : next.add(player.id);
       return next;
     });
+    this.saveStarterIds();
   }
 
   constructor() {
@@ -624,6 +640,10 @@ export class MatchDetailPage implements OnInit {
     // Set item from nav state immediately for fast render while Supabase loads
     if (state?.item) {
       this.item.set(state.item);
+    }
+
+    if (matchId) {
+      this.loadStarterIds(matchId);
     }
 
     await Promise.all([
@@ -794,6 +814,7 @@ export class MatchDetailPage implements OnInit {
       next.add(inId);
       return next;
     });
+    this.saveStarterIds();
     this.substitutionModalOpen.set(false);
     this.showToast(`🔄 Inn: ${inPlayer.name} · Ut: ${outPlayer?.name}`, 'primary');
   }
