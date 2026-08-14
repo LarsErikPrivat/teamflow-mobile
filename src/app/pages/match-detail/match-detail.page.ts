@@ -46,7 +46,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     <ion-content class="page-content">
       @if (item()) {
         <!-- SCOREBOARD -->
-        <div class="scoreboard" [style.background]="teamColor()">
+        <div class="scoreboard">
           <div class="scoreboard-teams">
             <span class="sb-team home">{{ item()!.match.homeTeam }}</span>
             <div class="sb-score-block">
@@ -370,6 +370,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     /* SCOREBOARD */
     .scoreboard {
       padding: 20px 16px 24px;
+      background: linear-gradient(to right, #059669 0%, #059669 45%, #0284c7 55%, #0284c7 100%);
     }
     .scoreboard-teams {
       display: grid; grid-template-columns: 1fr auto 1fr;
