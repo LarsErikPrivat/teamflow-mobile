@@ -14,23 +14,15 @@ import { AuthService } from '../../core/services/auth.service';
   template: `
     <ion-content class="login-content">
       <div class="login-container">
-        <svg class="login-logo" viewBox="0 0 465 96" xmlns="http://www.w3.org/2000/svg">
-          <g transform="translate(18, 6)">
-            <line x1="36" y1="14" x2="20" y2="36" stroke="#E2E8F0" stroke-width="2.5"/>
-            <line x1="36" y1="14" x2="52" y2="36" stroke="#E2E8F0" stroke-width="2.5"/>
-            <line x1="20" y1="48" x2="6"  y2="68" stroke="#CBD5E1" stroke-width="2.5"/>
-            <line x1="20" y1="48" x2="36" y2="68" stroke="#CBD5E1" stroke-width="2.5"/>
-            <line x1="52" y1="48" x2="36" y2="68" stroke="#CBD5E1" stroke-width="2.5"/>
-            <line x1="52" y1="48" x2="66" y2="68" stroke="#CBD5E1" stroke-width="2.5"/>
-            <circle cx="36" cy="14" r="12" fill="#FFFFFF"/>
-            <circle cx="20" cy="42" r="12" fill="#FFFFFF"/>
-            <circle cx="52" cy="42" r="12" fill="#FFFFFF"/>
-            <circle cx="6"  cy="70" r="12" fill="#10B981"/>
-            <circle cx="36" cy="70" r="12" fill="#10B981"/>
-            <circle cx="66" cy="70" r="12" fill="#10B981"/>
-          </g>
-          <line x1="108" y1="8" x2="108" y2="88" stroke="#F1F5F9" stroke-width="1.5"/>
-          <text x="124" y="62" font-size="46" font-weight="900" letter-spacing="-1.5" font-family="Helvetica Neue, Arial, sans-serif">
+        <svg class="login-logo" viewBox="0 0 220 40" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="19" cy="5"  r="5"   fill="#FFFFFF"/>
+          <circle cx="11" cy="17" r="4.5" fill="#FFFFFF"/>
+          <circle cx="27" cy="17" r="4.5" fill="#FFFFFF"/>
+          <circle cx="5"  cy="28" r="3.5" fill="#10B981"/>
+          <circle cx="19" cy="28" r="3.5" fill="#10B981"/>
+          <circle cx="33" cy="28" r="3.5" fill="#10B981"/>
+          <line x1="44" y1="4" x2="44" y2="36" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+          <text x="52" y="29" font-size="22" font-weight="800" letter-spacing="-0.5" font-family="Helvetica Neue, Arial, sans-serif">
             <tspan fill="#FFFFFF">Team</tspan><tspan fill="#10B981">Flow</tspan>
           </text>
         </svg>
