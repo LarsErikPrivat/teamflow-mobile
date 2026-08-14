@@ -24,6 +24,7 @@ import { MatchEvent, MatchEventType } from '../../core/models/match-event.model'
 
 type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
 
+
 @Component({
   selector: 'app-match-detail',
   standalone: true,
@@ -58,11 +59,11 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
 
         <!-- QUICK ACTIONS -->
         <div class="actions-row">
-          <button class="action-btn goal-home" (click)="openEvent('goal_home')">
+          <button class="action-btn goal-home" (click)="item()?.match.homeGame ? openEvent('goal_home') : quickGoal('home')">
             <ion-icon name="football-outline" />
             <span>Mål hjemme</span>
           </button>
-          <button class="action-btn goal-away" (click)="quickGoal('away')">
+          <button class="action-btn goal-away" (click)="item()?.match.homeGame === false ? openEvent('goal_away') : quickGoal('away')">
             <ion-icon name="football-outline" />
             <span>Mål borte</span>
           </button>
@@ -235,7 +236,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       <ng-template>
         <ion-header>
           <ion-toolbar>
-            <ion-title>{{ pendingAction() === 'goal_home' ? 'Mål hjemme' : pendingAction() === 'yellow' ? 'Gult kort' : 'Rødt kort' }}</ion-title>
+            <ion-title>{{ pendingAction() === 'goal_home' ? 'Mål hjemme' : pendingAction() === 'goal_away' ? 'Mål borte' : pendingAction() === 'yellow' ? 'Gult kort' : 'Rødt kort' }}</ion-title>
             <ion-buttons slot="end">
               <ion-button (click)="eventModalOpen.set(false)">
                 <ion-icon name="close-outline" />
@@ -511,7 +512,7 @@ export class MatchDetailPage implements OnInit {
   readonly item = signal<DistributedMatch | null>(null);
   readonly eventModalOpen = signal(false);
   readonly swapModalOpen = signal(false);
-  readonly pendingAction = signal<'yellow' | 'red' | 'goal_home'>('yellow');
+  readonly pendingAction = signal<'yellow' | 'red' | 'goal_home' | 'goal_away'>('yellow');
   readonly selectedPlayerId = signal('');
   readonly selectedPlayerName = signal('');
   pendingMinute: number | null = null;
@@ -754,7 +755,7 @@ export class MatchDetailPage implements OnInit {
     return elapsed >= 1 && elapsed <= 120 ? elapsed : null;
   }
 
-  openEvent(type: 'yellow' | 'red' | 'goal_home') {
+  openEvent(type: 'yellow' | 'red' | 'goal_home' | 'goal_away') {
     this.pendingAction.set(type);
     this.selectedPlayerId.set('');
     this.selectedPlayerName.set('');
@@ -766,15 +767,16 @@ export class MatchDetailPage implements OnInit {
     const matchId = this.item()?.match.id;
     if (!matchId) return;
     const action = this.pendingAction();
-    if (action === 'goal_home') {
+    if (action === 'goal_home' || action === 'goal_away') {
+      const side = action === 'goal_home' ? 'home' : 'away';
       this.eventsService.addOptimistic(matchId, 'goal', {
         playerId: this.selectedPlayerId() || undefined,
         playerName: this.selectedPlayerName() || undefined,
         minute: this.pendingMinute ?? undefined,
-        note: 'home',
+        note: side,
       });
       this.eventModalOpen.set(false);
-      this.showToast('⚽ Mål hjemme!', 'success');
+      this.showToast(side === 'home' ? '⚽ Mål hjemme!' : '⚽ Mål borte!', 'success');
       return;
     }
     const type: MatchEventType = action === 'yellow' ? 'yellow_card' : 'red_card';
