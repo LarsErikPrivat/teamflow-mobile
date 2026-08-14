@@ -90,7 +90,7 @@ import { DistributedMatch } from '../../core/models/distributed-match.model';
             <div class="section-label" style="margin-top: 1.5rem">KOMMENDE</div>
             @for (item of upcomingMatches(); track item.match.id) {
               @let team = getTeam(item.match.teamId);
-              <div class="match-card upcoming" [style.--team-color]="team?.color ?? '#10B981'" (click)="openMatch(item)">
+              <div class="match-card upcoming" [style.--team-color]="team?.color ?? '#10B981'">
                 <div class="match-card-header">
                   <span class="match-time">{{ formatDate(item.match.date) }} {{ item.match.time }}</span>
                   <span class="match-team-name" [style.color]="team?.color ?? '#10B981'">{{ team?.name ?? '' }}</span>
