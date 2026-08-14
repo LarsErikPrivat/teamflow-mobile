@@ -439,9 +439,9 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0; font-size: 15px;
     }
-    .shirt-number { position: relative; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; }
-    .shirt-icon { font-size: 28px; color: #475569; }
-    .shirt-num { position: absolute; font-size: 10px; font-weight: 900; color: #F8FAFC; margin-top: 4px; }
+    .shirt-number { position: relative; display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; }
+    .shirt-icon { font-size: 46px; color: #475569; }
+    .shirt-num { position: absolute; font-size: 13px; font-weight: 900; color: #F8FAFC; margin-top: 6px; }
     .player-info { flex: 1; min-width: 0; }
     .player-name { display: block; font-size: 14px; font-weight: 600; color: #F8FAFC; }
     .player-name.absent-name { text-decoration: line-through; color: #64748B; }
@@ -462,9 +462,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       background: #1E293B; border-radius: 10px; padding: 10px 12px;
     }
     .event-icon { font-size: 20px; flex-shrink: 0; }
-    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 38px; height: 38px; }
-    .event-shirt .shirt-icon { font-size: 38px; }
-    .event-shirt .shirt-num { font-size: 11px; margin-top: 5px; }
+    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 46px; height: 46px; }
     .event-info { flex: 1; }
     .event-label { display: block; font-size: 13px; font-weight: 700; color: #F8FAFC; }
     .event-player { display: block; font-size: 11px; color: #64748B; }

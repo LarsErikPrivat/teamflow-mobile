@@ -110,9 +110,9 @@ import { Player } from '../../core/models/player.model';
       border: 1px solid #334155;
     }
     .event-icon { font-size: 20px; flex-shrink: 0; }
-    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 38px; height: 38px; }
-    .shirt-icon { font-size: 38px; color: #475569; }
-    .shirt-num { position: absolute; font-size: 11px; font-weight: 900; color: #F8FAFC; margin-top: 5px; }
+    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 46px; height: 46px; }
+    .shirt-icon { font-size: 46px; color: #475569; }
+    .shirt-num { position: absolute; font-size: 13px; font-weight: 900; color: #F8FAFC; margin-top: 6px; }
     .event-body { flex: 1; min-width: 0; }
     .event-type { display: block; font-size: 13px; font-weight: 700; color: #F8FAFC; }
     .event-player { display: block; font-size: 12px; color: #94A3B8; }
