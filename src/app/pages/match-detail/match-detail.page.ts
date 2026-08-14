@@ -66,9 +66,9 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             <div class="sb-side right">
               <span class="sb-team-name">{{ item()!.match.awayTeam }}</span>
               <div class="sb-btns">
-                <button class="sb-btn goal" (click)="item()!.match.homeGame === false ? openEvent('goal_away') : quickGoal('away')">⚽</button>
-                <button class="sb-btn yellow-card-btn" (click)="item()!.match.homeGame === false ? openEvent('yellow') : quickCard('away','yellow')">🟨</button>
                 <button class="sb-btn red-card-btn" (click)="item()!.match.homeGame === false ? openEvent('red') : quickCard('away','red')">🟥</button>
+                <button class="sb-btn yellow-card-btn" (click)="item()!.match.homeGame === false ? openEvent('yellow') : quickCard('away','yellow')">🟨</button>
+                <button class="sb-btn goal" (click)="item()!.match.homeGame === false ? openEvent('goal_away') : quickGoal('away')">⚽</button>
               </div>
             </div>
           </div>
@@ -380,7 +380,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
 
     /* SCOREBOARD */
     .scoreboard {
-      padding: 16px 16px 0;
+      padding: 16px 16px 14px;
       background: linear-gradient(to right, #059669 0%, #059669 45%, #0284c7 55%, #0284c7 100%);
     }
     .sb-main {
@@ -391,7 +391,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .sb-side.right { align-items: flex-end; }
     .sb-team-name { font-size: 12px; font-weight: 700; color: white; opacity: 0.9; }
     .sb-btns { display: flex; gap: 6px; }
-    .sb-side.right .sb-btns { flex-direction: row-reverse; }
+    .sb-side.right .sb-btns { flex-direction: row; }
     .sb-btn {
       background: rgba(255,255,255,0.18); border: none; border-radius: 8px;
       width: 36px; height: 36px; font-size: 18px; cursor: pointer;
