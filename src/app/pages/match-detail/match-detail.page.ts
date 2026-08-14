@@ -45,16 +45,34 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
 
     <ion-content class="page-content">
       @if (item()) {
-        <!-- SCOREBOARD -->
+        <!-- SCOREBOARD + ACTIONS -->
         <div class="scoreboard">
-          <div class="scoreboard-teams">
-            <span class="sb-team home">{{ item()!.match.homeTeam }}</span>
-            <div class="sb-score-block">
+          <div class="sb-main">
+            <!-- Home side -->
+            <div class="sb-side">
+              <span class="sb-team-name">{{ item()!.match.homeTeam }}</span>
+              <div class="sb-btns">
+                <button class="sb-btn goal" (click)="item()!.match.homeGame ? openEvent('goal_home') : quickGoal('home')">⚽</button>
+                <button class="sb-btn yellow-card-btn" (click)="item()!.match.homeGame ? openEvent('yellow') : quickCard('home','yellow')">🟨</button>
+                <button class="sb-btn red-card-btn" (click)="item()!.match.homeGame ? openEvent('red') : quickCard('home','red')">🟥</button>
+              </div>
+            </div>
+            <!-- Score -->
+            <div class="sb-center">
               <span class="sb-score">{{ homeGoals() }} – {{ awayGoals() }}</span>
               <span class="sb-time">{{ item()!.match.time }} · Nivå {{ item()!.match.matchLevel }}</span>
             </div>
-            <span class="sb-team away">{{ item()!.match.awayTeam }}</span>
+            <!-- Away side -->
+            <div class="sb-side right">
+              <span class="sb-team-name">{{ item()!.match.awayTeam }}</span>
+              <div class="sb-btns">
+                <button class="sb-btn goal" (click)="item()!.match.homeGame === false ? openEvent('goal_away') : quickGoal('away')">⚽</button>
+                <button class="sb-btn yellow-card-btn" (click)="item()!.match.homeGame === false ? openEvent('yellow') : quickCard('away','yellow')">🟨</button>
+                <button class="sb-btn red-card-btn" (click)="item()!.match.homeGame === false ? openEvent('red') : quickCard('away','red')">🟥</button>
+              </div>
+            </div>
           </div>
+          <!-- Fulltime -->
           <div class="fulltime-row">
             @if (item()!.match.homeScore == null) {
               <button class="fulltime-btn" (click)="markFullTime()">
@@ -68,26 +86,6 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               </div>
             }
           </div>
-        </div>
-
-        <!-- QUICK ACTIONS -->
-        <div class="actions-row">
-          <button class="action-btn goal-home" (click)="item()!.match.homeGame ? openEvent('goal_home') : quickGoal('home')">
-            <ion-icon name="football-outline" />
-            <span>Mål hjemme</span>
-          </button>
-          <button class="action-btn goal-away" (click)="item()!.match.homeGame === false ? openEvent('goal_away') : quickGoal('away')">
-            <ion-icon name="football-outline" />
-            <span>Mål borte</span>
-          </button>
-          <button class="action-btn yellow" (click)="openEvent('yellow')">
-            <span class="card-icon yellow-card"></span>
-            <span>Gult</span>
-          </button>
-          <button class="action-btn red" (click)="openEvent('red')">
-            <span class="card-icon red-card"></span>
-            <span>Rødt</span>
-          </button>
         </div>
 
         <!-- SQUAD -->
@@ -382,38 +380,26 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
 
     /* SCOREBOARD */
     .scoreboard {
-      padding: 20px 16px 24px;
+      padding: 16px 16px 0;
       background: linear-gradient(to right, #059669 0%, #059669 45%, #0284c7 55%, #0284c7 100%);
     }
-    .scoreboard-teams {
+    .sb-main {
       display: grid; grid-template-columns: 1fr auto 1fr;
-      align-items: center; gap: 12px;
+      align-items: center; gap: 8px;
     }
-    .sb-team { font-size: 13px; font-weight: 700; color: white; opacity: 0.9; }
-    .sb-team.home { text-align: left; }
-    .sb-team.away { text-align: right; }
-    .sb-score-block { text-align: center; }
-    .sb-score { display: block; font-size: 42px; font-weight: 900; color: white; line-height: 1; }
+    .sb-side { display: flex; flex-direction: column; gap: 8px; }
+    .sb-side.right { align-items: flex-end; }
+    .sb-team-name { font-size: 12px; font-weight: 700; color: white; opacity: 0.9; }
+    .sb-btns { display: flex; gap: 6px; }
+    .sb-side.right .sb-btns { flex-direction: row-reverse; }
+    .sb-btn {
+      background: rgba(255,255,255,0.18); border: none; border-radius: 8px;
+      width: 36px; height: 36px; font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sb-center { text-align: center; }
+    .sb-score { display: block; font-size: 40px; font-weight: 900; color: white; line-height: 1; }
     .sb-time { display: block; font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 4px; }
-
-    /* ACTIONS */
-    .actions-row {
-      display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
-      gap: 8px; padding: 12px 16px;
-    }
-    .action-btn {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 6px; padding: 14px 8px; border-radius: 14px; border: none;
-      font-size: 12px; font-weight: 700; cursor: pointer; color: white;
-    }
-    .action-btn ion-icon { font-size: 22px; }
-    .action-btn.goal-home { background: #059669; }
-    .action-btn.goal-away { background: #0284c7; }
-    .action-btn.yellow { background: #D97706; }
-    .action-btn.red { background: #DC2626; }
-    .card-icon { display: block; width: 18px; height: 24px; border-radius: 3px; }
-    .yellow-card { background: #FCD34D; }
-    .red-card { background: #FCA5A5; }
 
     /* SECTION */
     .section { padding: 0 16px 16px; }
@@ -785,6 +771,30 @@ export class MatchDetailPage implements OnInit {
             await this.matchesSvc.update({ ...match, homeScore: home, awayScore: away });
             this.item.update(curr => curr ? { ...curr, match: { ...curr.match, homeScore: home, awayScore: away } } : curr);
             this.showToast('✅ Kamp satt som ferdigspilt', 'success');
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  async quickCard(side: 'home' | 'away', type: 'yellow' | 'red') {
+    const matchId = this.item()?.match.id;
+    if (!matchId) return;
+    const label = type === 'yellow' ? 'Gult kort' : 'Rødt kort';
+    const alert = await this.alert.create({
+      header: label,
+      message: 'Trøyenummer motspiller (valgfritt)',
+      inputs: [{ name: 'number', type: 'number', placeholder: 'Trøyenummer' }],
+      buttons: [
+        { text: 'Avbryt', role: 'cancel' },
+        {
+          text: 'Registrer',
+          handler: (data) => {
+            const num = data.number ? String(data.number) : undefined;
+            const eventType: MatchEventType = type === 'yellow' ? 'yellow_card' : 'red_card';
+            this.eventsService.addOptimistic(matchId, eventType, { playerName: num ? `#${num}` : undefined, note: side });
+            this.showToast(type === 'yellow' ? '🟨 Gult kort registrert' : '🟥 Rødt kort registrert', 'warning');
           }
         }
       ]
