@@ -20,6 +20,7 @@ log.txt
 # Ionic
 /.ionic
 /www
+!/www/assets/teamflow-logo-mobile.svg
 /platforms
 /plugins
 
