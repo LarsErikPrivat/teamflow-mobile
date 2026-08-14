@@ -59,11 +59,11 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
 
         <!-- QUICK ACTIONS -->
         <div class="actions-row">
-          <button class="action-btn goal-home" (click)="item()?.match.homeGame ? openEvent('goal_home') : quickGoal('home')">
+          <button class="action-btn goal-home" (click)="item()!.match.homeGame ? openEvent('goal_home') : quickGoal('home')">
             <ion-icon name="football-outline" />
             <span>Mål hjemme</span>
           </button>
-          <button class="action-btn goal-away" (click)="item()?.match.homeGame === false ? openEvent('goal_away') : quickGoal('away')">
+          <button class="action-btn goal-away" (click)="item()!.match.homeGame === false ? openEvent('goal_away') : quickGoal('away')">
             <ion-icon name="football-outline" />
             <span>Mål borte</span>
           </button>
