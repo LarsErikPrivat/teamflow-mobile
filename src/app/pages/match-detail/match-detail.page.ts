@@ -740,11 +740,26 @@ export class MatchDetailPage implements OnInit {
     });
   }
 
-  quickGoal(side: 'home' | 'away') {
+  async quickGoal(side: 'home' | 'away') {
     const matchId = this.item()?.match.id;
     if (!matchId) return;
-    this.eventsService.addOptimistic(matchId, 'goal', { note: side });
-    this.showToast(side === 'home' ? '⚽ Mål hjemme!' : '⚽ Mål borte!', 'success');
+    const alert = await this.alert.create({
+      header: side === 'home' ? 'Mål hjemme' : 'Mål borte',
+      message: 'Trøyenummer motspiller (valgfritt)',
+      inputs: [{ name: 'number', type: 'number', placeholder: 'Trøyenummer' }],
+      buttons: [
+        { text: 'Avbryt', role: 'cancel' },
+        {
+          text: 'Registrer',
+          handler: (data) => {
+            const num = data.number ? String(data.number) : undefined;
+            this.eventsService.addOptimistic(matchId, 'goal', { note: side, playerName: num ? `#${num}` : undefined });
+            this.showToast(side === 'home' ? '⚽ Mål hjemme!' : '⚽ Mål borte!', 'success');
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   private suggestMinute(): number | null {
