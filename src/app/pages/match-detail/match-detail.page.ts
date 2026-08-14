@@ -55,6 +55,19 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             </div>
             <span class="sb-team away">{{ item()!.match.awayTeam }}</span>
           </div>
+          <div class="fulltime-row">
+            @if (item()!.match.homeScore == null) {
+              <button class="fulltime-btn" (click)="markFullTime()">
+                <ion-icon name="checkmark-circle-outline" />
+                <span>Sett som ferdigspilt</span>
+              </button>
+            } @else {
+              <div class="fulltime-done">
+                <ion-icon name="checkmark-circle" />
+                <span>Ferdigspilt · {{ item()!.match.homeScore }} – {{ item()!.match.awayScore }}</span>
+              </div>
+            }
+          </div>
         </div>
 
         <!-- QUICK ACTIONS -->
@@ -75,21 +88,6 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             <span class="card-icon red-card"></span>
             <span>Rødt</span>
           </button>
-        </div>
-
-        <!-- FULL TIME -->
-        <div class="fulltime-row">
-          @if (item()!.match.homeScore == null) {
-            <button class="fulltime-btn" (click)="markFullTime()">
-              <ion-icon name="checkmark-circle-outline" />
-              <span>Sett kampen som ferdigspilt</span>
-            </button>
-          } @else {
-            <div class="fulltime-done">
-              <ion-icon name="checkmark-circle" style="color:#10B981" />
-              <span>Ferdigspilt · {{ item()!.match.homeScore }} – {{ item()!.match.awayScore }}</span>
-            </div>
-          }
         </div>
 
         <!-- SQUAD -->
@@ -488,19 +486,21 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     }
 
     /* FULL TIME */
-    .fulltime-row { padding: 0 16px 12px; }
+    .fulltime-row { padding: 12px 0 0; }
     .fulltime-btn {
       width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
-      background: #1E293B; border: 1px dashed #334155; border-radius: 12px;
-      padding: 12px; color: #94A3B8; font-size: 14px; font-weight: 600; cursor: pointer;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px; padding: 10px; color: rgba(255,255,255,0.85);
+      font-size: 13px; font-weight: 600; cursor: pointer;
     }
-    .fulltime-btn ion-icon { font-size: 18px; color: #10B981; }
+    .fulltime-btn ion-icon { font-size: 16px; }
     .fulltime-done {
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      background: #0F2A1E; border: 1px solid #10B98140; border-radius: 12px;
-      padding: 12px; color: #10B981; font-size: 14px; font-weight: 600;
+      background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4);
+      border-radius: 10px; padding: 10px; color: #fff;
+      font-size: 13px; font-weight: 600;
     }
-    .fulltime-done ion-icon { font-size: 18px; }
+    .fulltime-done ion-icon { font-size: 16px; color: #10B981; }
 
     /* MODALS */
     .modal-content { --background: #0F172A; padding: 16px; }
