@@ -109,11 +109,11 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               @let absent = isAbsent(player.id);
               @let cards = playerStats().get(player.id);
               <div class="player-row starter" [class.absent]="absent" (click)="toggleStarter(player)">
-                <div class="player-avatar starter-avatar" [style.background]="absent ? '#EF444422' : '#10B98122'">
+                <div class="player-avatar starter-avatar">
                   @if (player.number) {
                     <span class="shirt-number">
                       <ion-icon name="shirt-outline" class="shirt-icon" style="color:#F8FAFC" />
-                      <span class="shirt-num" style="color:#0F172A">{{ player.number }}</span>
+                      <span class="shirt-num" style="color:#F8FAFC">{{ player.number }}</span>
                     </span>
                   } @else {
                     <span style="color: #F8FAFC; font-weight: 700">{{ player.name.charAt(0) }}</span>
@@ -137,7 +137,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             @for (swap of swappedInPlayers(); track swap.player.id) {
               @let cards = playerStats().get(swap.player.id);
               <div class="player-row starter">
-                <div class="player-avatar starter-avatar" style="background: #10B98122">
+                <div class="player-avatar starter-avatar">
                   @if (swap.player.number) {
                     <span class="shirt-number">
                       <ion-icon name="shirt-outline" class="shirt-icon" style="color:#10B981" />
