@@ -9,7 +9,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   footballOutline, cardOutline, swapHorizontalOutline,
-  checkmarkCircle, ellipseOutline, trashOutline,
+  checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
   personOutline, closeOutline, chevronDownOutline, shirtOutline
 } from 'ionicons/icons';
 import { MatchEventsService } from '../../core/services/match-events.service';
@@ -75,6 +75,21 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             <span class="card-icon red-card"></span>
             <span>Rødt</span>
           </button>
+        </div>
+
+        <!-- FULL TIME -->
+        <div class="fulltime-row">
+          @if (item()!.match.homeScore == null) {
+            <button class="fulltime-btn" (click)="markFullTime()">
+              <ion-icon name="checkmark-circle-outline" />
+              <span>Sett kampen som ferdigspilt</span>
+            </button>
+          } @else {
+            <div class="fulltime-done">
+              <ion-icon name="checkmark-circle" style="color:#10B981" />
+              <span>Ferdigspilt · {{ item()!.match.homeScore }} – {{ item()!.match.awayScore }}</span>
+            </div>
+          }
         </div>
 
         <!-- SQUAD -->
@@ -472,6 +487,21 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       font-size: 16px; cursor: pointer;
     }
 
+    /* FULL TIME */
+    .fulltime-row { padding: 0 16px 12px; }
+    .fulltime-btn {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: #1E293B; border: 1px dashed #334155; border-radius: 12px;
+      padding: 12px; color: #94A3B8; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .fulltime-btn ion-icon { font-size: 18px; color: #10B981; }
+    .fulltime-done {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: #0F2A1E; border: 1px solid #10B98140; border-radius: 12px;
+      padding: 12px; color: #10B981; font-size: 14px; font-weight: 600;
+    }
+    .fulltime-done ion-icon { font-size: 18px; }
+
     /* MODALS */
     .modal-content { --background: #0F172A; padding: 16px; }
     ion-toolbar { --background: #0F172A; --color: #F8FAFC; }
@@ -631,7 +661,7 @@ export class MatchDetailPage implements OnInit {
   constructor() {
     addIcons({
       footballOutline, cardOutline, swapHorizontalOutline,
-      checkmarkCircle, ellipseOutline, trashOutline,
+      checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
       personOutline, closeOutline, chevronDownOutline, shirtOutline
     });
   }
@@ -737,6 +767,29 @@ export class MatchDetailPage implements OnInit {
       next.has(pid) ? next.delete(pid) : next.add(pid);
       return next;
     });
+  }
+
+  async markFullTime() {
+    const match = this.item()?.match;
+    if (!match?.id) return;
+    const home = this.homeGoals();
+    const away = this.awayGoals();
+    const alert = await this.alert.create({
+      header: 'Sett kampen som ferdigspilt',
+      message: `Sluttresultat: ${match.homeTeam} ${home} – ${away} ${match.awayTeam}`,
+      buttons: [
+        { text: 'Avbryt', role: 'cancel' },
+        {
+          text: 'Bekreft',
+          handler: async () => {
+            await this.matchesSvc.update({ ...match, homeScore: home, awayScore: away });
+            this.item.update(curr => curr ? { ...curr, match: { ...curr.match, homeScore: home, awayScore: away } } : curr);
+            this.showToast('✅ Kamp satt som ferdigspilt', 'success');
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   async quickGoal(side: 'home' | 'away') {
