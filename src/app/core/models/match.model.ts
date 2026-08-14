@@ -14,4 +14,7 @@ export interface Match {
   homeGame?: boolean;
 
   required2014Players?: number;
+
+  homeScore?: number;
+  awayScore?: number;
 }

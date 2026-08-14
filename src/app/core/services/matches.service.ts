@@ -213,7 +213,9 @@ export class MatchesService {
       awayTeam: row.away_team ?? '',
       homeGame: row.home_game ?? undefined,
       required2014Players: row.required2014players ?? undefined,
-      seasonId: row.season_id
+      seasonId: row.season_id,
+      homeScore: row.home_score ?? undefined,
+      awayScore: row.away_score ?? undefined
     });
   }
 
@@ -228,7 +230,9 @@ export class MatchesService {
       away_team: match.awayTeam,
       home_game: match.homeGame ?? null,
       required2014players: match.required2014Players ?? null,
-      season_id: match.seasonId
+      season_id: match.seasonId,
+      home_score: match.homeScore ?? null,
+      away_score: match.awayScore ?? null
     };
   }
 
