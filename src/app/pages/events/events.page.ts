@@ -58,7 +58,7 @@ import { Player } from '../../core/models/player.model';
                       }
                     </span>
                     <div class="event-body">
-                      <span class="event-type">{{ eventLabel(event) }}</span>
+                      <span class="event-type">{{ event.eventType === 'goal' ? (event.note === 'home' ? 'Mål · ' + group.homeTeam : 'Mål · ' + group.awayTeam) : eventLabel(event) }}</span>
                       @if (event.eventType === 'emergency_replacement' || event.eventType === 'substitution') {
                         <span class="event-player">{{ event.note }}</span>
                       } @else if (event.playerName) {
@@ -110,9 +110,9 @@ import { Player } from '../../core/models/player.model';
       border: 1px solid #334155;
     }
     .event-icon { font-size: 20px; flex-shrink: 0; }
-    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; }
-    .shirt-icon { font-size: 28px; color: #475569; }
-    .shirt-num { position: absolute; font-size: 9px; font-weight: 900; color: #F8FAFC; margin-top: 4px; }
+    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 38px; height: 38px; }
+    .shirt-icon { font-size: 38px; color: #475569; }
+    .shirt-num { position: absolute; font-size: 11px; font-weight: 900; color: #F8FAFC; margin-top: 5px; }
     .event-body { flex: 1; min-width: 0; }
     .event-type { display: block; font-size: 13px; font-weight: 700; color: #F8FAFC; }
     .event-player { display: block; font-size: 12px; color: #94A3B8; }
@@ -148,6 +148,8 @@ export class EventsPage implements OnInit {
         matchId,
         matchTitle: m ? `${m.match.homeTeam} – ${m.match.awayTeam}` : matchId,
         matchDate: m ? `${m.match.date} ${m.match.time}` : '',
+        homeTeam: m?.match.homeTeam ?? 'Hjemme',
+        awayTeam: m?.match.awayTeam ?? 'Borte',
         events: evts.sort((a, b) => (a.minute ?? 999) - (b.minute ?? 999)),
       };
     }).sort((a, b) => b.matchDate.localeCompare(a.matchDate));

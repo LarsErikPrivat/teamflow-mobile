@@ -210,7 +210,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                     }
                   </span>
                   <div class="event-info">
-                    <span class="event-label">{{ eventLabel(event) }}</span>
+                    <span class="event-label">{{ event.eventType === 'goal' ? (event.note === 'home' ? 'Mål · ' + item()!.match.homeTeam : 'Mål · ' + item()!.match.awayTeam) : eventLabel(event) }}</span>
                     @if (event.playerName) {
                       <span class="event-player">{{ event.playerName }}</span>
                     }
@@ -460,7 +460,9 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       background: #1E293B; border-radius: 10px; padding: 10px 12px;
     }
     .event-icon { font-size: 20px; flex-shrink: 0; }
-    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; }
+    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 38px; height: 38px; }
+    .event-shirt .shirt-icon { font-size: 38px; }
+    .event-shirt .shirt-num { font-size: 11px; margin-top: 5px; }
     .event-info { flex: 1; }
     .event-label { display: block; font-size: 13px; font-weight: 700; color: #F8FAFC; }
     .event-player { display: block; font-size: 11px; color: #64748B; }
