@@ -112,11 +112,11 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                 <div class="player-avatar starter-avatar" [style.background]="absent ? '#EF444422' : '#10B98122'">
                   @if (player.number) {
                     <span class="shirt-number">
-                      <ion-icon name="shirt-outline" class="shirt-icon" style="color:#10B981" />
-                      <span class="shirt-num" style="color:#10B981">{{ player.number }}</span>
+                      <ion-icon name="shirt-outline" class="shirt-icon" style="color:#F8FAFC" />
+                      <span class="shirt-num" style="color:#0F172A">{{ player.number }}</span>
                     </span>
                   } @else {
-                    <span style="color: #10B981; font-weight: 700">{{ player.name.charAt(0) }}</span>
+                    <span style="color: #F8FAFC; font-weight: 700">{{ player.name.charAt(0) }}</span>
                   }
                 </div>
                 <div class="player-info">
@@ -144,7 +144,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                       <span class="shirt-num" style="color:#10B981">{{ swap.player.number }}</span>
                     </span>
                   } @else {
-                    <span style="color: #10B981; font-weight: 700">{{ swap.player.name.charAt(0) }}</span>
+                    <span style="color: #F8FAFC; font-weight: 700">{{ swap.player.name.charAt(0) }}</span>
                   }
                 </div>
                 <div class="player-info">
