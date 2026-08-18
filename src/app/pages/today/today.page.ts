@@ -38,10 +38,37 @@ import { DistributedMatch } from '../../core/models/distributed-match.model';
           <span>Laster kamper...</span>
         </div>
       } @else if (todayMatches().length === 0) {
-        <div class="center-state">
-          <div class="empty-icon"><ion-icon name="calendar-outline" /></div>
-          <h3>Ingen kamper i dag</h3>
-          <p>{{ upcomingMatches().length > 0 ? 'Neste kamp er i morgen.' : 'Ingen kommende kamper funnet i fordelingen.' }}</p>
+        <div class="match-list">
+          <div class="center-state" style="margin-bottom: 1rem">
+            <div class="empty-icon"><ion-icon name="calendar-outline" /></div>
+            <h3>Ingen kamper i dag</h3>
+          </div>
+          @if (upcomingMatches().length > 0) {
+            <div class="section-label">KOMMENDE</div>
+            @for (item of upcomingMatches(); track item.match.id) {
+              @let team = getTeam(item.match.teamId);
+              <div class="match-card upcoming" [style.--team-color]="team?.color ?? '#10B981'">
+                <div class="match-card-header">
+                  <span class="match-time">{{ formatDate(item.match.date) }} {{ item.match.time }}</span>
+                  <span class="match-team-name" [style.color]="team?.color ?? '#10B981'">{{ team?.name ?? '' }}</span>
+                </div>
+                <div class="match-vs">
+                  <span class="match-home">{{ item.match.homeTeam }}</span>
+                  <span class="match-score muted">vs</span>
+                  <span class="match-away">{{ item.match.awayTeam }}</span>
+                </div>
+                <div class="match-card-footer">
+                  <span class="match-level">Nivå {{ item.match.matchLevel }}</span>
+                  <button class="squad-btn" (click)="openSquad(item, $event)">
+                    <ion-icon name="shirt-outline" />
+                    <span>Tropp</span>
+                  </button>
+                </div>
+              </div>
+            }
+          } @else {
+            <p class="center-state">Ingen kommende kamper funnet i fordelingen.</p>
+          }
         </div>
       } @else {
         <div class="match-list">
