@@ -808,7 +808,8 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     }
     const matchId = this.item()?.match.id;
     if (matchId) {
-      this.lineupsSvc.save(matchId, [...this.starterIds()]);
+      const benchIds = this.bench().map(p => p.id);
+      this.lineupsSvc.save(matchId, [...this.starterIds()], benchIds);
     }
   }
 

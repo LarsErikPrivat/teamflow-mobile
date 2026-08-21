@@ -5,6 +5,7 @@ import { SeasonsService } from './season.service';
 
 export interface MatchLineup {
   playerIds: string[];
+  benchIds: string[];
   durationMinutes?: number;
 }
 
@@ -14,7 +15,7 @@ export class MatchLineupsService {
   private readonly clientService = inject(ClientService);
   private readonly seasonsService = inject(SeasonsService);
 
-  async save(matchId: string, playerIds: string[]): Promise<void> {
+  async save(matchId: string, playerIds: string[], benchIds: string[] = []): Promise<void> {
     const clientId = this.clientService.requireClientId();
     const seasonId = this.seasonsService.activeSeason()?.id;
     if (!seasonId) return;
@@ -22,7 +23,7 @@ export class MatchLineupsService {
     const { error } = await this.supabase.client
       .from('match_lineups')
       .upsert(
-        { client_id: clientId, season_id: seasonId, match_id: matchId, player_ids: playerIds, updated_at: new Date().toISOString() },
+        { client_id: clientId, season_id: seasonId, match_id: matchId, player_ids: playerIds, bench_ids: benchIds, updated_at: new Date().toISOString() },
         { onConflict: 'client_id,match_id' }
       );
 
@@ -49,14 +50,15 @@ export class MatchLineupsService {
 
     const { data, error } = await this.supabase.client
       .from('match_lineups')
-      .select('player_ids, duration_minutes')
+      .select('player_ids, bench_ids, duration_minutes')
       .eq('client_id', clientId)
       .eq('match_id', matchId)
       .maybeSingle();
 
-    if (error) { console.error('Failed to load match lineup', error); return { playerIds: [] }; }
+    if (error) { console.error('Failed to load match lineup', error); return { playerIds: [], benchIds: [] }; }
     return {
       playerIds: (data?.player_ids as string[]) ?? [],
+      benchIds: (data?.bench_ids as string[]) ?? [],
       durationMinutes: data?.duration_minutes ?? undefined,
     };
   }
@@ -66,13 +68,17 @@ export class MatchLineupsService {
 
     const { data, error } = await this.supabase.client
       .from('match_lineups')
-      .select('match_id, player_ids, duration_minutes')
+      .select('match_id, player_ids, bench_ids, duration_minutes')
       .eq('client_id', clientId);
 
     if (error) { console.error('Failed to load match lineups', error); return new Map(); }
     return new Map((data ?? []).map(row => [
       row.match_id as string,
-      { playerIds: row.player_ids as string[], durationMinutes: row.duration_minutes ?? undefined },
+      {
+        playerIds: row.player_ids as string[],
+        benchIds: (row.bench_ids as string[]) ?? [],
+        durationMinutes: row.duration_minutes ?? undefined,
+      },
     ]));
   }
 
