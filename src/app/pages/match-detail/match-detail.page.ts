@@ -117,19 +117,44 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             <div class="event-log">
               @for (event of topEvents; track event.id) {
                 <div class="event-row">
-                  <span class="event-icon">{{ eventIcon(event) }}</span>
-                  <span class="event-shirt">
-                    <ion-icon name="shirt-outline" class="shirt-icon" />
-                    @if (playerNumber(event.playerId); as num) {
-                      <span class="shirt-num">{{ num }}</span>
-                    }
-                  </span>
-                  <div class="event-info">
-                    <span class="event-label">{{ event.eventType === 'goal' ? (event.note === 'home' ? 'Mål · ' + item()!.match.homeTeam : 'Mål · ' + item()!.match.awayTeam) : eventLabel(event) }}</span>
-                    @if (event.playerName) {
-                      <span class="event-player">{{ event.playerName }}</span>
-                    }
-                  </div>
+                  @if (event.eventType === 'substitution') {
+                    <ion-icon name="swap-horizontal-outline" class="event-swap-icon" />
+                    @let outId = subOutPlayerIdFromNote(event.note);
+                    <span class="event-shirt">
+                      <ion-icon name="shirt-outline" class="shirt-icon" />
+                      @if (playerNumber(event.playerId); as num) {
+                        <span class="shirt-num">{{ num }}</span>
+                      } @else {
+                        <span class="shirt-num shirt-initials">{{ playerInitials(event.playerName) }}</span>
+                      }
+                    </span>
+                    <span class="event-shirt sub-out-shirt">
+                      <ion-icon name="shirt-outline" class="shirt-icon" style="color:#475569" />
+                      @if (playerNumber(outId); as num) {
+                        <span class="shirt-num" style="color:#94A3B8">{{ num }}</span>
+                      } @else {
+                        @let outPlayer = allClientPlayers().find(p => p.id === outId);
+                        <span class="shirt-num shirt-initials" style="color:#94A3B8">{{ playerInitials(outPlayer?.name) }}</span>
+                      }
+                    </span>
+                    <div class="event-info">
+                      <span class="event-label">Innbytte</span>
+                    </div>
+                  } @else {
+                    <span class="event-icon">{{ eventIcon(event) }}</span>
+                    <span class="event-shirt">
+                      <ion-icon name="shirt-outline" class="shirt-icon" />
+                      @if (playerNumber(event.playerId); as num) {
+                        <span class="shirt-num">{{ num }}</span>
+                      }
+                    </span>
+                    <div class="event-info">
+                      <span class="event-label">{{ event.eventType === 'goal' ? (event.note === 'home' ? 'Mål · ' + item()!.match.homeTeam : 'Mål · ' + item()!.match.awayTeam) : eventLabel(event) }}</span>
+                      @if (event.playerName) {
+                        <span class="event-player">{{ event.playerName }}</span>
+                      }
+                    </div>
+                  }
                   @if (event.minute) {
                     <span class="event-minute">{{ event.minute }}'</span>
                   }
@@ -428,7 +453,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     }
     .chevron.rotated { transform: rotate(-90deg); }
     .action-bar {
-      display: flex; gap: 8px; padding: 0 16px 12px;
+      display: flex; gap: 8px; padding: 12px 16px 12px;
     }
     .action-bar-btn {
       flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -478,6 +503,9 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .card-badge { font-size: 16px; line-height: 1; }
 
     /* EVENT LOG */
+    .event-swap-icon { font-size: 16px; color: #10B981; flex-shrink: 0; }
+    .sub-out-shirt .shirt-icon { color: #475569 !important; }
+    .shirt-initials { font-size: 7px !important; letter-spacing: -0.02em; }
     .event-log { display: flex; flex-direction: column; gap: 3px; }
     .event-row {
       display: flex; align-items: center; gap: 8px;
@@ -592,11 +620,22 @@ export class MatchDetailPage implements OnInit {
   readonly presentIds = signal<Set<string>>(new Set());
   readonly absentIds = signal<Set<string>>(new Set());
   readonly swappedInPlayers = signal<{ player: Player; replacedName: string }[]>([]);
-  private readonly allClientPlayers = signal<Player[]>([]);
+  readonly allClientPlayers = signal<Player[]>([]);
 
   playerNumber(playerId: string | undefined): number | undefined {
     if (!playerId) return undefined;
     return this.allClientPlayers().find(p => p.id === playerId)?.number;
+  }
+
+  playerInitials(name: string | undefined): string {
+    if (!name) return '?';
+    return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  subOutPlayerIdFromNote(note: string | undefined): string | undefined {
+    if (!note) return undefined;
+    const m = note.match(/^outId:([^|]+)/);
+    return m?.[1];
   }
 
   readonly teamColor = computed(() => {
@@ -925,7 +964,7 @@ export class MatchDetailPage implements OnInit {
       playerId: inId,
       playerName: inPlayer.name,
       minute: this.subMinute ?? undefined,
-      note: `Inn: ${inPlayer.name}, Ut: ${outPlayer?.name ?? outId}`,
+      note: `outId:${outId}|Inn: ${inPlayer.name}, Ut: ${outPlayer?.name ?? outId}`,
     });
     // Flytt ut-spiller til benk, inn-spiller til banen
     this.starterIds.update(s => {
