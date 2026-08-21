@@ -12,7 +12,7 @@ import {
   checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
   personOutline, closeOutline, chevronDownOutline, shirtOutline,
   lockClosedOutline, lockOpenOutline, personRemoveOutline,
-  pauseOutline, playOutline, addOutline
+  pauseOutline, playOutline, addOutline, refreshOutline
 } from 'ionicons/icons';
 import { MatchEventsService } from '../../core/services/match-events.service';
 import { PlayersService } from '../../core/services/players.service';
@@ -111,6 +111,12 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             <button class="action-bar-btn end-btn" (click)="endMatch()">
               <ion-icon name="checkmark-circle-outline" />
               <span>Ferdig</span>
+            </button>
+          }
+          @if (currentPhase() === 'done') {
+            <button class="action-bar-btn reset-btn" (click)="resetMatch()">
+              <ion-icon name="refresh-outline" />
+              <span>Tilbakestill</span>
             </button>
           }
         </div>
@@ -459,6 +465,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .halftime-btn { border-color: #FBBF24 !important; color: #FBBF24 !important; }
     .resume-btn   { border-color: #10B981 !important; color: #10B981 !important; }
     .end-btn      { border-color: #6366F1 !important; color: #6366F1 !important; }
+    .reset-btn    { border-color: #475569 !important; color: #64748B !important; }
 
     /* UNIFIED MODAL */
     .unified-tabs {
@@ -830,6 +837,16 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     this.saveTimestamp('match_second', now);
   }
 
+  resetMatch() {
+    this.matchStartedAt.set(null);
+    this.halftimeAt.set(null);
+    this.secondHalfAt.set(null);
+    this.matchEndedAt.set(null);
+    ['match_start', 'match_halftime', 'match_second', 'match_end'].forEach(k =>
+      this.saveTimestamp(k, null)
+    );
+  }
+
   endMatch() {
     const now = Date.now();
     this.matchEndedAt.set(now);
@@ -979,7 +996,7 @@ export class MatchDetailPage implements OnInit, OnDestroy {
       checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
       personOutline, closeOutline, chevronDownOutline, shirtOutline,
       lockClosedOutline, lockOpenOutline, personRemoveOutline,
-      pauseOutline, playOutline, addOutline
+      pauseOutline, playOutline, addOutline, refreshOutline
     });
   }
 
