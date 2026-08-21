@@ -91,7 +91,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
 
         <!-- PERSISTENT ACTION BAR -->
         <div class="action-bar">
-          <button class="action-bar-btn" [class.locked]="lineupLocked()" [title]="lineupLocked() ? 'Lås opp' : 'Lås'" (click)="lineupLocked.set(!lineupLocked())">
+          <button class="action-bar-btn" [class.locked]="lineupLocked()" [title]="lineupLocked() ? 'Lås opp' : 'Lås'" (click)="lineupLockedManual.set(!lineupLocked())">
             <ion-icon [name]="lineupLocked() ? 'lock-closed-outline' : 'lock-open-outline'" />
             <span>{{ lineupLocked() ? 'Lås opp' : 'Lås' }}</span>
           </button>
@@ -598,7 +598,14 @@ export class MatchDetailPage implements OnInit {
   subMinute: number | null = null;
 
   readonly starterIds = signal<Set<string>>(new Set());
-  readonly lineupLocked = signal(false);
+  readonly lineupLockedManual = signal<boolean | null>(null);
+  readonly lineupLocked = computed(() => {
+    const manual = this.lineupLockedManual();
+    if (manual !== null) return manual;
+    const match = this.item()?.match;
+    if (!match?.date || !match?.time) return false;
+    return new Date(`${match.date}T${match.time}`) <= new Date();
+  });
   private starterStorageKey = '';
 
   private loadStarterIds(matchId: string) {
