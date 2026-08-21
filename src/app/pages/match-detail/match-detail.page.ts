@@ -294,7 +294,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                 [class.selected]="selectedPlayerId() === player.id"
                 (click)="selectedPlayerId.set(player.id); selectedPlayerName.set(player.name)"
               >
-                @if (player.number) { <span class="picker-nr">{{ player.number }}</span> }
+                <span class="picker-nr">{{ player.number ?? '-' }}</span>
                 {{ player.name }}
               </button>
             }
@@ -332,7 +332,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           <div class="player-picker">
             @for (player of startersNotSwapped(); track player.id) {
               <button class="picker-player" [class.selected]="subOutId() === player.id" (click)="subOutId.set(player.id)">
-                @if (player.number) { <span class="picker-nr">{{ player.number }}</span> }
+                <span class="picker-nr">{{ player.number ?? '-' }}</span>
                 {{ player.name }}
               </button>
             }
@@ -341,7 +341,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           <div class="player-picker">
             @for (player of bench(); track player.id) {
               <button class="picker-player" [class.selected]="subInId() === player.id" (click)="subInId.set(player.id)">
-                @if (player.number) { <span class="picker-nr">{{ player.number }}</span> }
+                <span class="picker-nr">{{ player.number ?? '-' }}</span>
                 {{ player.name }}
               </button>
             }
@@ -377,7 +377,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                 [class.selected]="swapOutId() === player.id"
                 (click)="swapOutId.set(player.id)"
               >
-                @if (player.number) { <span class="picker-nr">{{ player.number }}</span> }
+                <span class="picker-nr">{{ player.number ?? '-' }}</span>
                 {{ player.name }}
               </button>
             }
@@ -390,7 +390,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                 [class.selected]="swapInId() === player.id"
                 (click)="swapInId.set(player.id)"
               >
-                @if (player.number) { <span class="picker-nr">{{ player.number }}</span> }
+                <span class="picker-nr">{{ player.number ?? '-' }}</span>
                 {{ player.name }}
               </button>
             } @empty {
