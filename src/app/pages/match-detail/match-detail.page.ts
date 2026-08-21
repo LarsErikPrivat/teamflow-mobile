@@ -115,13 +115,13 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             </button>
           }
           @if (currentPhase() === 'done') {
-            <button class="action-bar-btn reset-btn" (click)="resetMatch()">
+            <button class="action-bar-btn reset-btn" (click)="confirmResetMatch()">
               <ion-icon name="refresh-outline" />
               <span>Tilbakestill</span>
             </button>
           }
           @if (currentPhase() !== 'before' && currentPhase() !== 'done') {
-            <button class="action-bar-btn reset-btn reset-btn-sm" (click)="resetMatch()">
+            <button class="action-bar-btn reset-btn reset-btn-sm" (click)="confirmResetMatch()">
               <ion-icon name="refresh-outline" />
             </button>
           }
@@ -852,6 +852,18 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     const now = Date.now();
     this.secondHalfAt.set(now);
     this.saveTimestamp('match_second', now);
+  }
+
+  async confirmResetMatch() {
+    const alert = await this.alert.create({
+      header: 'Tilbakestill kamp',
+      message: 'Dette sletter alle hendelser og nullstiller kampklokken. Er du sikker?',
+      buttons: [
+        { text: 'Avbryt', role: 'cancel' },
+        { text: 'Tilbakestill', role: 'destructive', handler: () => this.resetMatch() },
+      ],
+    });
+    await alert.present();
   }
 
   resetMatch() {
