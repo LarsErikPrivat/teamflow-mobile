@@ -110,10 +110,10 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               <span>Pause</span>
             </button>
           }
-          @if (currentPhase() === 'break' && manuallyPaused()) {
-            <button class="action-bar-btn resume-btn" (click)="manuallyPaused.set(false)">
+          @if (currentPhase() === 'break') {
+            <button class="action-bar-btn resume-btn" (click)="resumeFromBreak()">
               <ion-icon name="play-outline" />
-              <span>Fortsett</span>
+              <span>Start</span>
             </button>
           }
           <button class="action-bar-btn settings-btn" (click)="openTimingSettings()">
@@ -690,6 +690,7 @@ export class MatchDetailPage implements OnInit, OnDestroy {
   readonly halfDuration = signal(35);
   readonly breakDuration = signal(5);
   readonly manuallyPaused = signal(false);
+  readonly manualBreakSkip = signal(false);
   readonly timingModalOpen = signal(false);
   tempHalfDuration = 35;
   tempBreakDuration = 5;
@@ -712,7 +713,7 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     const half = this.halfDuration();
     const brk = this.breakDuration();
     if (elapsed < half) return 'first';
-    if (elapsed < half + brk) return 'break';
+    if (elapsed < half + brk && !this.manualBreakSkip()) return 'break';
     if (elapsed < half * 2 + brk) return 'second';
     return 'done';
   });
@@ -748,6 +749,11 @@ export class MatchDetailPage implements OnInit, OnDestroy {
       if (ev.playerId) {
         map.set(ev.playerId, currentMin - (ev.minute ?? 0));
       }
+      // Preserve minutes for players who were subbed out (removed from starterIds)
+      const outId = this.subOutPlayerIdFromNote(ev.note);
+      if (outId && !map.has(outId)) {
+        map.set(outId, ev.minute ?? currentMin);
+      }
     }
     return map;
   });
@@ -775,6 +781,19 @@ export class MatchDetailPage implements OnInit, OnDestroy {
   private saveStarterIds() {
     if (this.starterStorageKey) {
       localStorage.setItem(this.starterStorageKey, JSON.stringify([...this.starterIds()]));
+    }
+  }
+
+  resumeFromBreak() {
+    this.manuallyPaused.set(false);
+    // Skip auto-break if elapsed is still within the natural break window
+    const elapsed = this.elapsedMinutes();
+    if (elapsed !== null) {
+      const half = this.halfDuration();
+      const brk = this.breakDuration();
+      if (elapsed >= half && elapsed < half + brk) {
+        this.manualBreakSkip.set(true);
+      }
     }
   }
 
@@ -1119,11 +1138,7 @@ export class MatchDetailPage implements OnInit, OnDestroy {
   }
 
   private suggestMinute(): number | null {
-    const match = this.item()?.match;
-    if (!match?.date || !match?.time) return null;
-    const start = new Date(`${match.date}T${match.time}`);
-    const elapsed = Math.floor((Date.now() - start.getTime()) / 60000);
-    return elapsed >= 1 && elapsed <= 120 ? elapsed : null;
+    return this.currentMatchMinute();
   }
 
   openEvent(type: 'yellow' | 'red' | 'goal_home' | 'goal_away') {
