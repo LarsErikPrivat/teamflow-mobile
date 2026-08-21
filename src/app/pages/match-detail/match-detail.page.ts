@@ -15,6 +15,7 @@ import {
   pauseOutline, playOutline, addOutline, refreshOutline
 } from 'ionicons/icons';
 import { MatchEventsService } from '../../core/services/match-events.service';
+import { MatchLineupsService } from '../../core/services/match-lineups.service';
 import { PlayersService } from '../../core/services/players.service';
 import { TeamsService } from '../../core/services/teams.service';
 import { SeasonsService } from '../../core/services/season.service';
@@ -681,6 +682,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
 })
 export class MatchDetailPage implements OnInit, OnDestroy {
   readonly eventsService = inject(MatchEventsService);
+  private readonly lineupsSvc = inject(MatchLineupsService);
   private readonly playersSvc = inject(PlayersService);
   private readonly teamsSvc = inject(TeamsService);
   private readonly seasonsSvc = inject(SeasonsService);
@@ -797,6 +799,10 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     if (this.starterStorageKey) {
       localStorage.setItem(this.starterStorageKey, JSON.stringify([...this.starterIds()]));
     }
+    const matchId = this.item()?.match.id;
+    if (matchId) {
+      this.lineupsSvc.save(matchId, [...this.starterIds()]);
+    }
   }
 
   private saveTimestamp(key: string, ts: number | null) {
@@ -850,7 +856,10 @@ export class MatchDetailPage implements OnInit, OnDestroy {
       this.saveTimestamp(k, null)
     );
     const matchId = this.item()?.match.id;
-    if (matchId) this.eventsService.removeAllForMatch(matchId);
+    if (matchId) {
+      this.eventsService.removeAllForMatch(matchId);
+      this.lineupsSvc.remove(matchId);
+    }
   }
 
   endMatch() {
