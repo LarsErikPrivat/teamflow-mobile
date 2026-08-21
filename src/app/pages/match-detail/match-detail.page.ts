@@ -281,15 +281,18 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         </ion-header>
         <ion-content class="modal-content">
           <div class="field-label">Spiller</div>
-          <div class="player-picker">
+          <div class="player-list-picker">
             @for (player of allSquadPlayers(); track player.id) {
               <button
-                class="picker-player"
+                class="picker-row"
                 [class.selected]="selectedPlayerId() === player.id"
                 (click)="selectedPlayerId.set(player.id); selectedPlayerName.set(player.name)"
               >
                 <span class="picker-nr">{{ player.number ?? '-' }}</span>
-                {{ player.name }}
+                <span class="picker-name">{{ player.name }}</span>
+                @if (minutesPlayed(player.id); as min) {
+                  <span class="picker-min">{{ min }}'</span>
+                }
               </button>
             }
           </div>
@@ -323,20 +326,26 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         </ion-header>
         <ion-content class="modal-content">
           <div class="field-label">Spiller ut (på banen)</div>
-          <div class="player-picker">
+          <div class="player-list-picker">
             @for (player of startersNotSwapped(); track player.id) {
-              <button class="picker-player" [class.selected]="subOutId() === player.id" (click)="subOutId.set(player.id)">
+              <button class="picker-row" [class.selected]="subOutId() === player.id" (click)="subOutId.set(player.id)">
                 <span class="picker-nr">{{ player.number ?? '-' }}</span>
-                {{ player.name }}
+                <span class="picker-name">{{ player.name }}</span>
+                @if (minutesPlayed(player.id); as min) {
+                  <span class="picker-min">{{ min }}'</span>
+                }
               </button>
             }
           </div>
           <div class="field-label" style="margin-top:16px">Spiller inn (på benk)</div>
-          <div class="player-picker">
+          <div class="player-list-picker">
             @for (player of bench(); track player.id) {
-              <button class="picker-player" [class.selected]="subInId() === player.id" (click)="subInId.set(player.id)">
+              <button class="picker-row" [class.selected]="subInId() === player.id" (click)="subInId.set(player.id)">
                 <span class="picker-nr">{{ player.number ?? '-' }}</span>
-                {{ player.name }}
+                <span class="picker-name">{{ player.name }}</span>
+                @if (minutesPlayed(player.id); as min) {
+                  <span class="picker-min">{{ min }}'</span>
+                }
               </button>
             }
           </div>
@@ -364,28 +373,31 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         </ion-header>
         <ion-content class="modal-content">
           <div class="field-label">Hvem melder forfall?</div>
-          <div class="player-picker">
+          <div class="player-list-picker">
             @for (player of item()!.players; track player.id) {
               <button
-                class="picker-player"
+                class="picker-row"
                 [class.selected]="swapOutId() === player.id"
                 (click)="swapOutId.set(player.id)"
               >
                 <span class="picker-nr">{{ player.number ?? '-' }}</span>
-                {{ player.name }}
+                <span class="picker-name">{{ player.name }}</span>
+                @if (minutesPlayed(player.id); as min) {
+                  <span class="picker-min">{{ min }}'</span>
+                }
               </button>
             }
           </div>
           <div class="field-label" style="margin-top: 16px">Erstatt med</div>
-          <div class="player-picker">
+          <div class="player-list-picker">
             @for (player of availableReplacements(); track player.id) {
               <button
-                class="picker-player"
+                class="picker-row"
                 [class.selected]="swapInId() === player.id"
                 (click)="swapInId.set(player.id)"
               >
                 <span class="picker-nr">{{ player.number ?? '-' }}</span>
-                {{ player.name }}
+                <span class="picker-name">{{ player.name }}</span>
               </button>
             } @empty {
               <p style="color: #64748B; font-size: 14px">Ingen tilgjengelige spillere funnet.</p>
@@ -547,21 +559,23 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       font-size: 11px; font-weight: 800; text-transform: uppercase;
       letter-spacing: 0.06em; color: #64748B; margin-bottom: 10px;
     }
-    .player-picker { display: flex; flex-wrap: wrap; gap: 8px; }
-    .picker-player {
-      padding: 8px 14px; background: #1E293B; border: 1.5px solid #334155;
-      border-radius: 999px; color: #F8FAFC; font-size: 13px; font-weight: 600;
-      cursor: pointer; min-width: 120px;
+    .player-list-picker { display: flex; flex-direction: column; gap: 4px; }
+    .picker-row {
+      display: flex; align-items: center; gap: 10px; width: 100%;
+      padding: 9px 12px; background: #1E293B; border: 1.5px solid #334155;
+      border-radius: 10px; color: #F8FAFC; font-size: 13px; font-weight: 600;
+      cursor: pointer; text-align: left;
     }
-    .picker-player.selected {
-      background: #10B981; border-color: #10B981; color: white;
-    }
+    .picker-row.selected { background: rgba(16,185,129,0.15); border-color: #10B981; }
+    .picker-name { flex: 1; }
+    .picker-min { font-size: 11px; font-weight: 700; color: #64748B; margin-left: auto; flex-shrink: 0; }
     .picker-nr {
       display: inline-flex; align-items: center; justify-content: center;
-      min-width: 20px; height: 18px; padding: 0 4px;
-      background: rgba(255,255,255,0.12); border-radius: 4px;
-      font-size: 11px; font-weight: 900; margin-right: 4px;
+      min-width: 24px; height: 20px; padding: 0 5px;
+      background: rgba(255,255,255,0.1); border-radius: 5px;
+      font-size: 11px; font-weight: 900; flex-shrink: 0;
     }
+    .picker-row.selected .picker-nr { background: rgba(16,185,129,0.25); }
     .minute-input {
       --background: #1E293B; --color: #F8FAFC; --border-color: #334155;
       --border-width: 1.5px; --border-style: solid; --border-radius: 12px;
@@ -605,6 +619,37 @@ export class MatchDetailPage implements OnInit {
     if (!match?.date || !match?.time) return false;
     return new Date(`${match.date}T${match.time}`) <= new Date();
   });
+  readonly currentMatchMinute = computed(() => {
+    const match = this.item()?.match;
+    if (!match?.date || !match?.time) return null;
+    const kickoff = new Date(`${match.date}T${match.time}`).getTime();
+    const elapsed = Math.floor((Date.now() - kickoff) / 60000);
+    if (elapsed < 0) return null;
+    return Math.min(90, elapsed);
+  });
+
+  minutesPlayed(playerId: string): number | null {
+    const currentMin = this.currentMatchMinute();
+    if (currentMin === null) return null;
+    const matchId = this.item()?.match.id;
+    if (!matchId) return null;
+    const events = this.eventsService.eventsForMatch(matchId);
+    const subEvents = events.filter(e => e.eventType === 'substitution');
+
+    // Check if this player was subbed out
+    const subbedOut = subEvents.find(e => this.subOutPlayerIdFromNote(e.note) === playerId);
+    if (subbedOut) return subbedOut.minute ?? currentMin;
+
+    // Check if this player came on as sub
+    const subbedIn = subEvents.find(e => e.playerId === playerId);
+    if (subbedIn) return currentMin - (subbedIn.minute ?? 0);
+
+    // Starter
+    if (this.starterIds().has(playerId)) return currentMin;
+
+    return null;
+  }
+
   private starterStorageKey = '';
 
   private loadStarterIds(matchId: string) {
