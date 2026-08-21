@@ -115,7 +115,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             </div>
             @if (showEvents()) {
             <div class="event-log">
-              @for (event of topEvents; track event.id) {
+              @for (event of topEvents.slice().reverse(); track event.id) {
                 <div class="event-row">
                   @if (event.eventType === 'substitution') {
                     @let outId = subOutPlayerIdFromNote(event.note);
