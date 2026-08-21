@@ -12,7 +12,7 @@ import {
   checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
   personOutline, closeOutline, chevronDownOutline, shirtOutline,
   lockClosedOutline, lockOpenOutline, personRemoveOutline,
-  pauseOutline, playOutline
+  pauseOutline, playOutline, addOutline
 } from 'ionicons/icons';
 import { MatchEventsService } from '../../core/services/match-events.service';
 import { PlayersService } from '../../core/services/players.service';
@@ -55,31 +55,18 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
 
     <ion-content class="page-content">
       @if (item()) {
-        <!-- SCOREBOARD + ACTIONS -->
+        <!-- SCOREBOARD -->
         <div class="scoreboard">
           <div class="sb-main">
-            <!-- Home side -->
             <div class="sb-side">
               <span class="sb-team-name">{{ item()!.match.homeTeam }}</span>
-              <div class="sb-btns">
-                <button class="sb-btn goal" (click)="item()!.match.homeGame ? openEvent('goal_home') : quickGoal('home')">⚽</button>
-                <button class="sb-btn yellow-card-btn" (click)="item()!.match.homeGame ? openEvent('yellow') : quickCard('home','yellow')">🟨</button>
-                <button class="sb-btn red-card-btn" (click)="item()!.match.homeGame ? openEvent('red') : quickCard('home','red')">🟥</button>
-              </div>
             </div>
-            <!-- Score -->
             <div class="sb-center">
               <span class="sb-score">{{ homeGoals() }} – {{ awayGoals() }}</span>
               <span class="sb-time">{{ item()!.match.time }} · Nivå {{ item()!.match.matchLevel }}</span>
             </div>
-            <!-- Away side -->
             <div class="sb-side right">
               <span class="sb-team-name">{{ item()!.match.awayTeam }}</span>
-              <div class="sb-btns">
-                <button class="sb-btn red-card-btn" (click)="item()!.match.homeGame === false ? openEvent('red') : quickCard('away','red')">🟥</button>
-                <button class="sb-btn yellow-card-btn" (click)="item()!.match.homeGame === false ? openEvent('yellow') : quickCard('away','yellow')">🟨</button>
-                <button class="sb-btn goal" (click)="item()!.match.homeGame === false ? openEvent('goal_away') : quickGoal('away')">⚽</button>
-              </div>
             </div>
           </div>
           <!-- Fulltime -->
@@ -107,9 +94,9 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             </button>
           }
           @if (currentPhase() === 'first') {
-            <button class="action-bar-btn" (click)="openSubstitution()">
-              <ion-icon name="swap-horizontal-outline" />
-              <span>Innbytte</span>
+            <button class="action-bar-btn add-btn" (click)="openUnified('goal')">
+              <ion-icon name="add-outline" />
+              <span>Hendelse</span>
             </button>
             <button class="action-bar-btn halftime-btn" (click)="callHalftime()">
               <ion-icon name="pause-outline" />
@@ -123,9 +110,9 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             </button>
           }
           @if (currentPhase() === 'second') {
-            <button class="action-bar-btn" (click)="openSubstitution()">
-              <ion-icon name="swap-horizontal-outline" />
-              <span>Innbytte</span>
+            <button class="action-bar-btn add-btn" (click)="openUnified('goal')">
+              <ion-icon name="add-outline" />
+              <span>Hendelse</span>
             </button>
             <button class="action-bar-btn end-btn" (click)="endMatch()">
               <ion-icon name="checkmark-circle-outline" />
@@ -300,84 +287,104 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       }
     </ion-content>
 
-    <!-- EVENT MODAL (yellow/red card) -->
-    <ion-modal [isOpen]="eventModalOpen()" (didDismiss)="eventModalOpen.set(false)">
+    <!-- UNIFIED EVENT MODAL -->
+    <ion-modal [isOpen]="unifiedModalOpen()" (didDismiss)="unifiedModalOpen.set(false)" [breakpoints]="[0,1]" [initialBreakpoint]="1">
       <ng-template>
         <ion-header>
           <ion-toolbar>
-            <ion-title>{{ pendingAction() === 'goal_home' ? 'Mål hjemme' : pendingAction() === 'goal_away' ? 'Mål borte' : pendingAction() === 'yellow' ? 'Gult kort' : 'Rødt kort' }}</ion-title>
             <ion-buttons slot="end">
-              <ion-button (click)="eventModalOpen.set(false)">
-                <ion-icon name="close-outline" />
-              </ion-button>
+              <ion-button (click)="unifiedModalOpen.set(false)"><ion-icon name="close-outline" /></ion-button>
             </ion-buttons>
           </ion-toolbar>
         </ion-header>
         <ion-content class="modal-content">
-          <div class="field-label">Spiller</div>
-          <div class="player-list-picker">
-            @for (player of allSquadPlayers(); track player.id) {
-              <button
-                class="picker-row"
-                [class.selected]="selectedPlayerId() === player.id"
-                (click)="selectedPlayerId.set(player.id); selectedPlayerName.set(player.name)"
-              >
-                <span class="picker-nr">{{ player.number ?? '-' }}</span>
-                <span class="picker-name">{{ player.name }}</span>
-                @if (minutesPlayed(player.id); as min) {
-                  <span class="picker-min">{{ min }}'</span>
-                }
-              </button>
-            }
+          <!-- Tab selector -->
+          <div class="unified-tabs">
+            <button class="utab" [class.active]="activeTab() === 'goal'" (click)="activeTab.set('goal')">⚽ Mål</button>
+            <button class="utab" [class.active]="activeTab() === 'sub'" (click)="activeTab.set('sub')">⇄ Innbytte</button>
+            <button class="utab" [class.active]="activeTab() === 'card'" (click)="activeTab.set('card')">🟨 Kort</button>
           </div>
-          <ion-button expand="block" class="confirm-btn" (click)="confirmEvent()">
-            Registrer
-          </ion-button>
-        </ion-content>
-      </ng-template>
-    </ion-modal>
 
-    <!-- INNBYTTE MODAL (kamphendelse) -->
-    <ion-modal [isOpen]="substitutionModalOpen()" (didDismiss)="substitutionModalOpen.set(false)">
-      <ng-template>
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>Innbytte</ion-title>
-            <ion-buttons slot="end">
-              <ion-button (click)="substitutionModalOpen.set(false)">
-                <ion-icon name="close-outline" />
-              </ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content class="modal-content">
-          <div class="field-label">Spiller ut (på banen)</div>
-          <div class="player-list-picker">
-            @for (player of startersNotSwapped(); track player.id) {
-              <button class="picker-row" [class.selected]="subOutId() === player.id" (click)="subOutId.set(player.id)">
-                <span class="picker-nr">{{ player.number ?? '-' }}</span>
-                <span class="picker-name">{{ player.name }}</span>
-                @if (minutesPlayed(player.id); as min) {
-                  <span class="picker-min">{{ min }}'</span>
-                }
+          <!-- MÅL TAB -->
+          @if (activeTab() === 'goal') {
+            <div class="goal-sides">
+              <button class="goal-side-btn" [class.selected]="goalSide() === 'home'" (click)="handleGoalTap('home')">
+                <span class="goal-side-emoji">⚽</span>
+                <span class="goal-side-label">{{ item()!.match.homeTeam }}</span>
               </button>
-            }
-          </div>
-          <div class="field-label" style="margin-top:16px">Spiller inn (på benk)</div>
-          <div class="player-list-picker">
-            @for (player of bench(); track player.id) {
-              <button class="picker-row" [class.selected]="subInId() === player.id" (click)="subInId.set(player.id)">
-                <span class="picker-nr">{{ player.number ?? '-' }}</span>
-                <span class="picker-name">{{ player.name }}</span>
-                @if (minutesPlayed(player.id); as min) {
-                  <span class="picker-min">{{ min }}'</span>
-                }
+              <button class="goal-side-btn" [class.selected]="goalSide() === 'away'" (click)="handleGoalTap('away')">
+                <span class="goal-side-emoji">⚽</span>
+                <span class="goal-side-label">{{ item()!.match.awayTeam }}</span>
               </button>
+            </div>
+            @if (goalSide() !== null && isOurGoal(goalSide()!)) {
+              <div class="field-label" style="margin-top:20px">Målscorer (valgfritt)</div>
+              <div class="player-list-picker">
+                @for (player of allSquadPlayers(); track player.id) {
+                  <button class="picker-row" [class.selected]="selectedPlayerId() === player.id"
+                    (click)="selectedPlayerId.set(player.id); selectedPlayerName.set(player.name)">
+                    <span class="picker-nr">{{ player.number ?? '-' }}</span>
+                    <span class="picker-name">{{ player.name }}</span>
+                    @if (minutesPlayed(player.id); as min) { <span class="picker-min">{{ min }}'</span> }
+                  </button>
+                }
+              </div>
+              <ion-button expand="block" class="confirm-btn" (click)="confirmEvent()">Registrer mål</ion-button>
             }
-          </div>
-          <ion-button expand="block" class="confirm-btn" [disabled]="!subOutId() || !subInId()" (click)="confirmSubstitution()">
-            Registrer innbytte
-          </ion-button>
+          }
+
+          <!-- INNBYTTE TAB -->
+          @if (activeTab() === 'sub') {
+            <div class="field-label" style="margin-top:4px">Spiller ut (på banen)</div>
+            <div class="player-list-picker">
+              @for (player of startersNotSwapped(); track player.id) {
+                <button class="picker-row" [class.selected]="subOutId() === player.id" (click)="subOutId.set(player.id)">
+                  <span class="picker-nr">{{ player.number ?? '-' }}</span>
+                  <span class="picker-name">{{ player.name }}</span>
+                  @if (minutesPlayed(player.id); as min) { <span class="picker-min">{{ min }}'</span> }
+                </button>
+              }
+            </div>
+            <div class="field-label" style="margin-top:16px">Spiller inn (på benk)</div>
+            <div class="player-list-picker">
+              @for (player of bench(); track player.id) {
+                <button class="picker-row" [class.selected]="subInId() === player.id" (click)="subInId.set(player.id)">
+                  <span class="picker-nr">{{ player.number ?? '-' }}</span>
+                  <span class="picker-name">{{ player.name }}</span>
+                  @if (minutesPlayed(player.id); as min) { <span class="picker-min">{{ min }}'</span> }
+                </button>
+              }
+            </div>
+            <ion-button expand="block" class="confirm-btn" [disabled]="!subOutId() || !subInId()" (click)="confirmSubstitution()">
+              Registrer innbytte
+            </ion-button>
+          }
+
+          <!-- KORT TAB -->
+          @if (activeTab() === 'card') {
+            <div class="card-type-selector">
+              <button class="card-type-btn" [class.active]="pendingAction() === 'yellow'" (click)="pendingAction.set('yellow')">
+                🟨 Gult kort
+              </button>
+              <button class="card-type-btn" [class.active]="pendingAction() === 'red'" (click)="pendingAction.set('red')">
+                🟥 Rødt kort
+              </button>
+            </div>
+            <div class="field-label" style="margin-top:20px">Spiller</div>
+            <div class="player-list-picker">
+              @for (player of allSquadPlayers(); track player.id) {
+                <button class="picker-row" [class.selected]="selectedPlayerId() === player.id"
+                  (click)="selectedPlayerId.set(player.id); selectedPlayerName.set(player.name)">
+                  <span class="picker-nr">{{ player.number ?? '-' }}</span>
+                  <span class="picker-name">{{ player.name }}</span>
+                  @if (minutesPlayed(player.id); as min) { <span class="picker-min">{{ min }}'</span> }
+                </button>
+              }
+            </div>
+            <ion-button expand="block" class="confirm-btn" [disabled]="!selectedPlayerId()" (click)="confirmEvent()">
+              Registrer kort
+            </ion-button>
+          }
         </ion-content>
       </ng-template>
     </ion-modal>
@@ -454,9 +461,36 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .phase-second { background: rgba(139,92,246,0.4);  color: #fff; }
     .phase-done   { background: rgba(100,116,139,0.3); color: rgba(255,255,255,0.7); }
     .start-btn    { border-color: #10B981 !important; color: #10B981 !important; background: rgba(16,185,129,0.1) !important; }
+    .add-btn      { border-color: #6366F1 !important; color: #6366F1 !important; background: rgba(99,102,241,0.1) !important; }
     .halftime-btn { border-color: #FBBF24 !important; color: #FBBF24 !important; }
     .resume-btn   { border-color: #10B981 !important; color: #10B981 !important; }
     .end-btn      { border-color: #6366F1 !important; color: #6366F1 !important; }
+
+    /* UNIFIED MODAL */
+    .unified-tabs {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 20px;
+    }
+    .utab {
+      padding: 10px 4px; border-radius: 10px; font-size: 13px; font-weight: 700;
+      background: #1E293B; border: 1.5px solid #334155; color: #64748B; cursor: pointer;
+    }
+    .utab.active { background: rgba(99,102,241,0.15); border-color: #6366F1; color: #A5B4FC; }
+    .goal-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .goal-side-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 20px 10px; background: #1E293B; border: 2px solid #334155;
+      border-radius: 14px; cursor: pointer;
+    }
+    .goal-side-btn.selected { border-color: #10B981; background: rgba(16,185,129,0.1); }
+    .goal-side-emoji { font-size: 30px; line-height: 1; }
+    .goal-side-label { font-size: 12px; font-weight: 700; color: #94A3B8; text-align: center; }
+    .goal-side-btn.selected .goal-side-label { color: #10B981; }
+    .card-type-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .card-type-btn {
+      padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700;
+      background: #1E293B; border: 2px solid #334155; color: #94A3B8; cursor: pointer;
+    }
+    .card-type-btn.active { border-color: #FBBF24; background: rgba(251,191,36,0.1); color: #FDE68A; }
     .squad-action-btn {
       display: flex; align-items: center; justify-content: center;
       width: 28px; height: 28px; border-radius: 8px;
@@ -652,7 +686,9 @@ export class MatchDetailPage implements OnInit, OnDestroy {
   private readonly alert = inject(AlertController);
 
   readonly item = signal<DistributedMatch | null>(null);
-  readonly eventModalOpen = signal(false);
+  readonly unifiedModalOpen = signal(false);
+  readonly activeTab = signal<'goal' | 'sub' | 'card'>('goal');
+  readonly goalSide = signal<'home' | 'away' | null>(null);
   readonly swapModalOpen = signal(false);
   readonly pendingAction = signal<'yellow' | 'red' | 'goal_home' | 'goal_away'>('yellow');
   readonly selectedPlayerId = signal('');
@@ -660,7 +696,6 @@ export class MatchDetailPage implements OnInit, OnDestroy {
   pendingMinute: number | null = null;
   readonly swapOutId = signal('');
   readonly swapInId = signal('');
-  readonly substitutionModalOpen = signal(false);
   readonly subOutId = signal('');
   readonly subInId = signal('');
   subMinute: number | null = null;
@@ -950,7 +985,7 @@ export class MatchDetailPage implements OnInit, OnDestroy {
       checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
       personOutline, closeOutline, chevronDownOutline, shirtOutline,
       lockClosedOutline, lockOpenOutline, personRemoveOutline,
-      pauseOutline, playOutline
+      pauseOutline, playOutline, addOutline
     });
   }
 
@@ -1135,12 +1170,34 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     return this.currentMatchMinute();
   }
 
-  openEvent(type: 'yellow' | 'red' | 'goal_home' | 'goal_away') {
-    this.pendingAction.set(type);
+  openUnified(tab: 'goal' | 'sub' | 'card' = 'goal') {
+    this.activeTab.set(tab);
+    this.goalSide.set(null);
     this.selectedPlayerId.set('');
     this.selectedPlayerName.set('');
+    this.subOutId.set('');
+    this.subInId.set('');
+    this.subMinute = this.suggestMinute();
     this.pendingMinute = this.suggestMinute();
-    this.eventModalOpen.set(true);
+    this.pendingAction.set(tab === 'card' ? 'yellow' : 'goal_home');
+    this.unifiedModalOpen.set(true);
+  }
+
+  isOurGoal(side: 'home' | 'away'): boolean {
+    const homeGame = this.item()?.match.homeGame;
+    return (homeGame === true && side === 'home') || (homeGame === false && side === 'away');
+  }
+
+  handleGoalTap(side: 'home' | 'away') {
+    if (this.isOurGoal(side)) {
+      this.goalSide.set(side);
+      this.pendingAction.set(side === 'home' ? 'goal_home' : 'goal_away');
+      this.selectedPlayerId.set('');
+      this.selectedPlayerName.set('');
+    } else {
+      this.quickGoal(side);
+      this.unifiedModalOpen.set(false);
+    }
   }
 
   confirmEvent() {
@@ -1155,7 +1212,7 @@ export class MatchDetailPage implements OnInit, OnDestroy {
         minute: this.pendingMinute ?? undefined,
         note: side,
       });
-      this.eventModalOpen.set(false);
+      this.unifiedModalOpen.set(false);
       this.showToast(side === 'home' ? '⚽ Mål hjemme!' : '⚽ Mål borte!', 'success');
       return;
     }
@@ -1165,7 +1222,7 @@ export class MatchDetailPage implements OnInit, OnDestroy {
       playerName: this.selectedPlayerName() || undefined,
       minute: this.pendingMinute ?? undefined,
     });
-    this.eventModalOpen.set(false);
+    this.unifiedModalOpen.set(false);
     this.showToast(type === 'yellow_card' ? '🟨 Gult kort registrert' : '🟥 Rødt kort registrert', 'warning');
   }
 
@@ -1173,13 +1230,6 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     this.swapOutId.set('');
     this.swapInId.set('');
     this.swapModalOpen.set(true);
-  }
-
-  openSubstitution() {
-    this.subOutId.set('');
-    this.subInId.set('');
-    this.subMinute = this.suggestMinute();
-    this.substitutionModalOpen.set(true);
   }
 
   confirmSubstitution() {
@@ -1204,7 +1254,7 @@ export class MatchDetailPage implements OnInit, OnDestroy {
       return next;
     });
     this.saveStarterIds();
-    this.substitutionModalOpen.set(false);
+    this.unifiedModalOpen.set(false);
     this.showToast(`🔄 Inn: ${inPlayer.name} · Ut: ${outPlayer?.name}`, 'primary');
   }
 
