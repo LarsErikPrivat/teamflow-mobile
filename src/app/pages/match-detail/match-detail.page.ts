@@ -69,20 +69,14 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               <span class="sb-team-name">{{ item()!.match.awayTeam }}</span>
             </div>
           </div>
-          <!-- Fulltime -->
-          <div class="fulltime-row">
-            @if (item()!.match.homeScore == null) {
-              <button class="fulltime-btn" (click)="markFullTime()">
-                <ion-icon name="checkmark-circle-outline" />
-                <span>Sett som ferdigspilt</span>
-              </button>
-            } @else {
+          @if (item()!.match.homeScore != null) {
+            <div class="fulltime-row">
               <div class="fulltime-done">
                 <ion-icon name="checkmark-circle" />
                 <span>Ferdigspilt · {{ item()!.match.homeScore }} – {{ item()!.match.awayScore }}</span>
               </div>
-            }
-          </div>
+            </div>
+          }
         </div>
 
         <!-- PERSISTENT ACTION BAR -->
