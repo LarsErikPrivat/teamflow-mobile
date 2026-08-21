@@ -358,6 +358,9 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             <ion-button expand="block" class="confirm-btn" [disabled]="!subOutId() || !subInId()" (click)="confirmSubstitution()">
               Registrer innbytte
             </ion-button>
+            <ion-button expand="block" fill="clear" class="done-sub-btn" (click)="unifiedModalOpen.set(false)">
+              Ferdig
+            </ion-button>
           }
 
           <!-- KORT TAB -->
@@ -673,6 +676,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       border-radius: 12px; min-height: 48px;
     }
     .confirm-btn { --background: #10B981; margin-top: 20px; }
+    .done-sub-btn { --color: #64748B; margin-top: 4px; font-size: 14px; }
   `]
 })
 export class MatchDetailPage implements OnInit, OnDestroy {
@@ -1267,7 +1271,8 @@ export class MatchDetailPage implements OnInit, OnDestroy {
       return next;
     });
     this.saveStarterIds();
-    this.unifiedModalOpen.set(false);
+    this.subOutId.set('');
+    this.subInId.set('');
     this.showToast(`🔄 Inn: ${inPlayer.name} · Ut: ${outPlayer?.name}`, 'primary');
   }
 
