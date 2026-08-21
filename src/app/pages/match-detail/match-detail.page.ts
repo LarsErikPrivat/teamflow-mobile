@@ -833,6 +833,7 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     this.saveTimestamp('match_halftime', null);
     this.saveTimestamp('match_second', null);
     this.saveTimestamp('match_end', null);
+    this.saveStarterIds();
   }
 
   callHalftime() {
@@ -860,6 +861,8 @@ export class MatchDetailPage implements OnInit, OnDestroy {
       this.eventsService.removeAllForMatch(matchId);
       this.lineupsSvc.remove(matchId);
     }
+    this.starterIds.set(new Set());
+    if (this.starterStorageKey) localStorage.removeItem(this.starterStorageKey);
   }
 
   endMatch() {
