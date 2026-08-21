@@ -861,10 +861,20 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     this.saveStarterIds();
   }
 
-  callHalftime() {
-    const now = Date.now();
-    this.halftimeAt.set(now);
-    this.saveTimestamp('match_halftime', now);
+  async callHalftime() {
+    const alert = await this.alert.create({
+      header: 'Pause',
+      message: 'Bekreft at første omgang er ferdig.',
+      buttons: [
+        { text: 'Avbryt', role: 'cancel' },
+        { text: 'Pause', handler: () => {
+          const now = Date.now();
+          this.halftimeAt.set(now);
+          this.saveTimestamp('match_halftime', now);
+        }},
+      ],
+    });
+    await alert.present();
   }
 
   startSecondHalf() {
