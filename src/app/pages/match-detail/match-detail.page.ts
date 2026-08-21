@@ -1151,7 +1151,7 @@ export class MatchDetailPage implements OnInit, OnDestroy {
           text: 'Registrer',
           handler: (data) => {
             const num = data.number ? String(data.number) : undefined;
-            this.eventsService.addOptimistic(matchId, 'goal', { note: side, playerName: num ? `#${num}` : undefined });
+            this.eventsService.addOptimistic(matchId, 'goal', { note: side, playerName: num ? `#${num}` : undefined, minute: this.suggestMinute() ?? undefined });
             this.showToast(side === 'home' ? '⚽ Mål hjemme!' : '⚽ Mål borte!', 'success');
           }
         }
