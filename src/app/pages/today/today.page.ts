@@ -383,8 +383,8 @@ export class TodayPage implements OnInit {
 
   isNow(match: { id: string; homeScore?: number | null }): boolean {
     if (match.homeScore != null) return false;
-    const started = localStorage.getItem(`match_${match.id}_startedAt`);
-    const ended = localStorage.getItem(`match_${match.id}_endedAt`);
+    const started = localStorage.getItem(`match_start_${match.id}`);
+    const ended = localStorage.getItem(`match_end_${match.id}`);
     return !!started && !ended;
   }
 
