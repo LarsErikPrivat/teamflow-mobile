@@ -133,8 +133,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                       @if (playerNumber(outId); as num) {
                         <span class="shirt-num" style="color:#94A3B8">{{ num }}</span>
                       } @else {
-                        @let outPlayer = allClientPlayers().find(p => p.id === outId);
-                        <span class="shirt-num shirt-initials" style="color:#94A3B8">{{ playerInitials(outPlayer?.name) }}</span>
+                        <span class="shirt-num shirt-initials" style="color:#94A3B8">{{ playerInitials(outPlayerName(outId)) }}</span>
                       }
                     </span>
                     <div class="event-info">
@@ -643,6 +642,11 @@ export class MatchDetailPage implements OnInit {
     if (!note) return undefined;
     const m = note.match(/^outId:([^|]+)/);
     return m?.[1];
+  }
+
+  outPlayerName(outId: string | undefined): string | undefined {
+    if (!outId) return undefined;
+    return this.allClientPlayers().find(p => p.id === outId)?.name;
   }
 
   readonly teamColor = computed(() => {
