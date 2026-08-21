@@ -88,17 +88,15 @@ import { DistributedMatch } from '../../core/models/distributed-match.model';
               [style.--team-color]="team?.color ?? '#10B981'"
               (click)="openMatch(item)"
             >
-              @if (isNow(item.match)) {
-                <div class="now-badge">LIVE</div>
-              }
-              @if (done) {
-                <div class="done-badge">Ferdig</div>
-              }
               <div class="match-card-header">
                 <span class="match-time">{{ item.match.time }}</span>
-                <span class="match-team-name" [style.color]="team?.color ?? '#10B981'">
-                  {{ team?.name ?? '' }}
-                </span>
+                <span class="match-team-name" [style.color]="team?.color ?? '#10B981'">{{ team?.name ?? '' }}</span>
+                @if (isNow(item.match)) {
+                  <span class="now-badge">LIVE</span>
+                }
+                @if (done) {
+                  <span class="done-badge">Ferdig</span>
+                }
                 <span class="match-player-count">{{ item.players.length }} sp.</span>
               </div>
               <div class="match-vs">
@@ -228,10 +226,9 @@ import { DistributedMatch } from '../../core/models/distributed-match.model';
     .match-card.upcoming { opacity: 0.7; }
 
     .now-badge {
-      position: absolute; top: 12px; right: 12px;
       background: #EF4444; color: white;
       font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
-      padding: 2px 8px; border-radius: 999px;
+      padding: 2px 8px; border-radius: 999px; flex-shrink: 0;
       animation: pulse 2s infinite;
     }
     @keyframes pulse {
@@ -239,10 +236,9 @@ import { DistributedMatch } from '../../core/models/distributed-match.model';
       50% { opacity: 0.6; }
     }
     .done-badge {
-      position: absolute; top: 12px; right: 12px;
       background: #1E293B; border: 1px solid #475569; color: #94A3B8;
       font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
-      padding: 2px 8px; border-radius: 999px;
+      padding: 2px 8px; border-radius: 999px; flex-shrink: 0;
     }
     .match-card.match-done {
       opacity: 0.85;
@@ -257,7 +253,7 @@ import { DistributedMatch } from '../../core/models/distributed-match.model';
       display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
     }
     .match-time { font-size: 13px; font-weight: 700; color: #94A3B8; }
-    .match-team-name { font-size: 12px; font-weight: 800; margin-left: auto; }
+    .match-team-name { font-size: 12px; font-weight: 800; margin-left: auto; padding-right: 6px; }
     .match-player-count { font-size: 11px; color: #64748B; }
 
     .match-vs {
