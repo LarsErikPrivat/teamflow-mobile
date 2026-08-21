@@ -97,17 +97,9 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
 
         <!-- PERSISTENT ACTION BAR -->
         <div class="action-bar">
-          <button class="action-bar-btn" [class.locked]="lineupLocked()" [title]="lineupLocked() ? 'Lås opp' : 'Lås'" (click)="lineupLockedManual.set(!lineupLocked())">
-            <ion-icon [name]="lineupLocked() ? 'lock-closed-outline' : 'lock-open-outline'" />
-            <span>{{ lineupLocked() ? 'Lås opp' : 'Lås' }}</span>
-          </button>
           <button class="action-bar-btn" (click)="openSubstitution()">
             <ion-icon name="swap-horizontal-outline" />
             <span>Innbytte</span>
-          </button>
-          <button class="action-bar-btn forfeit" (click)="openSwap()">
-            <ion-icon name="person-remove-outline" />
-            <span>Forfall</span>
           </button>
           @if (currentPhase() === 'first' || currentPhase() === 'second') {
             <button class="action-bar-btn pause-btn" (click)="manuallyPaused.set(true)">
@@ -183,6 +175,14 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         <div class="section">
           <div class="section-header" (click)="showOnField.set(!showOnField())">
             <span class="section-title">PÅ BANEN ({{ starters().length }})</span>
+            <div style="display:flex;align-items:center;gap:6px;margin-left:auto" (click)="$event.stopPropagation()">
+              <button class="squad-action-btn" [class.locked]="lineupLocked()" (click)="lineupLockedManual.set(!lineupLocked())">
+                <ion-icon [name]="lineupLocked() ? 'lock-closed-outline' : 'lock-open-outline'" />
+              </button>
+              <button class="squad-action-btn forfeit-btn" (click)="openSwap()">
+                <ion-icon name="person-remove-outline" />
+              </button>
+            </div>
             <ion-icon name="chevron-down-outline" class="chevron" [class.rotated]="!showOnField()" />
           </div>
 
@@ -193,14 +193,10 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               @let cards = playerStats().get(player.id);
               <div class="player-row starter" [class.absent]="absent" (click)="toggleStarter(player)">
                 <div class="player-avatar starter-avatar">
-                  @if (player.number) {
-                    <span class="shirt-number">
-                      <ion-icon name="shirt-outline" class="shirt-icon" style="color:#F8FAFC" />
-                      <span class="shirt-num" style="color:#F8FAFC">{{ player.number }}</span>
-                    </span>
-                  } @else {
-                    <span style="color: #F8FAFC; font-weight: 700">{{ player.name.charAt(0) }}</span>
-                  }
+                  <span class="shirt-number">
+                    <ion-icon name="shirt-outline" class="shirt-icon" style="color:#F8FAFC" />
+                    <span class="shirt-num" style="color:#F8FAFC">{{ player.number ?? '#' }}</span>
+                  </span>
                 </div>
                 <div class="player-info">
                   <span class="player-name" [class.absent-name]="absent">{{ player.name }}</span>
@@ -221,14 +217,10 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               @let cards = playerStats().get(swap.player.id);
               <div class="player-row starter">
                 <div class="player-avatar starter-avatar">
-                  @if (swap.player.number) {
-                    <span class="shirt-number">
-                      <ion-icon name="shirt-outline" class="shirt-icon" style="color:#10B981" />
-                      <span class="shirt-num" style="color:#10B981">{{ swap.player.number }}</span>
-                    </span>
-                  } @else {
-                    <span style="color: #F8FAFC; font-weight: 700">{{ swap.player.name.charAt(0) }}</span>
-                  }
+                  <span class="shirt-number">
+                    <ion-icon name="shirt-outline" class="shirt-icon" style="color:#10B981" />
+                    <span class="shirt-num" style="color:#10B981">{{ swap.player.number ?? '#' }}</span>
+                  </span>
                 </div>
                 <div class="player-info">
                   <span class="player-name">{{ swap.player.name }}</span>
@@ -259,14 +251,10 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                 @let cards = playerStats().get(player.id);
                 <div class="player-row" (click)="toggleStarter(player)">
                   <div class="player-avatar" style="background: #1E293B">
-                    @if (player.number) {
-                      <span class="shirt-number">
-                        <ion-icon name="shirt-outline" class="shirt-icon" />
-                        <span class="shirt-num">{{ player.number }}</span>
-                      </span>
-                    } @else {
-                      <span style="color: #94A3B8; font-weight: 700">{{ player.name.charAt(0) }}</span>
-                    }
+                    <span class="shirt-number">
+                      <ion-icon name="shirt-outline" class="shirt-icon" />
+                      <span class="shirt-num">{{ player.number ?? '#' }}</span>
+                    </span>
                   </div>
                   <div class="player-info">
                     <span class="player-name">{{ player.name }}</span>
@@ -464,16 +452,25 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     ion-toolbar { --color: white; }
     .phase-badge {
       display: inline-flex; align-items: center;
-      padding: 3px 10px; border-radius: 999px; margin-right: 8px;
-      font-size: 11px; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap;
+      padding: 4px 10px; border-radius: 999px; margin-right: 8px;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.06em; white-space: nowrap;
+      border: 1.5px solid rgba(255,255,255,0.5);
     }
-    .phase-first  { background: rgba(16,185,129,0.25); color: #10B981; }
-    .phase-break  { background: rgba(251,191,36,0.25); color: #FBBF24; }
-    .phase-second { background: rgba(99,102,241,0.25); color: #818CF8; }
-    .phase-done   { background: rgba(100,116,139,0.2); color: #94A3B8; }
+    .phase-first  { background: rgba(16,185,129,0.35); color: #fff; }
+    .phase-break  { background: rgba(251,191,36,0.4);  color: #fff; }
+    .phase-second { background: rgba(139,92,246,0.4);  color: #fff; }
+    .phase-done   { background: rgba(100,116,139,0.3); color: rgba(255,255,255,0.7); }
     .pause-btn { border-color: #FBBF24 !important; color: #FBBF24 !important; }
     .resume-btn { border-color: #10B981 !important; color: #10B981 !important; }
     .settings-btn { border-color: #475569 !important; color: #64748B !important; }
+    .squad-action-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 8px;
+      background: #1E293B; border: 1px solid #334155; color: #64748B;
+      font-size: 16px; cursor: pointer; flex-shrink: 0;
+    }
+    .squad-action-btn.locked { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,0.12); }
+    .squad-action-btn.forfeit-btn { border-color: #EF4444; color: #EF4444; }
     .page-content { --background: #0F172A; }
 
     /* SCOREBOARD */
