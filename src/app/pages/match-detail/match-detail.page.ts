@@ -123,6 +123,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           @if (currentPhase() !== 'before' && currentPhase() !== 'done') {
             <button class="action-bar-btn reset-btn reset-btn-sm" (click)="confirmResetMatch()">
               <ion-icon name="refresh-outline" />
+              <span>Tilbakestill</span>
             </button>
           }
         </div>
@@ -326,7 +327,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             @if (goalSide() !== null && isOurGoal(goalSide()!)) {
               <div class="field-label" style="margin-top:20px">Målscorer (valgfritt)</div>
               <div class="player-list-picker">
-                @for (player of allSquadPlayers(); track player.id) {
+                @for (player of starters(); track player.id) {
                   <button class="picker-row" [class.selected]="selectedPlayerId() === player.id"
                     (click)="selectedPlayerId.set(player.id); selectedPlayerName.set(player.name)">
                     <span class="picker-nr">{{ player.number ?? '-' }}</span>
@@ -475,7 +476,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .resume-btn   { border-color: #10B981 !important; color: #10B981 !important; }
     .end-btn      { border-color: #6366F1 !important; color: #6366F1 !important; }
     .reset-btn    { border-color: #475569 !important; color: #64748B !important; }
-    .reset-btn-sm { flex: 0 0 44px; min-width: 0; padding: 0; }
+    .reset-btn-sm { flex: 0 0 auto; }
 
     /* UNIFIED MODAL */
     .unified-tabs {
@@ -888,6 +889,11 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     this.matchEndedAt.set(now);
     this.saveTimestamp('match_end', now);
     this.markFullTime();
+    const duration = this.currentMatchMinute();
+    const matchId = this.item()?.match.id;
+    if (matchId && duration != null) {
+      this.lineupsSvc.saveDuration(matchId, duration);
+    }
   }
 
   phaseLabel(): string {
