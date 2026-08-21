@@ -76,14 +76,23 @@ import { DistributedMatch } from '../../core/models/distributed-match.model';
 
           @for (item of todayMatches(); track item.match.id) {
             @let team = getTeam(item.match.teamId);
+            @let done = isDone(item.match);
+            @let result = matchResult(item);
             <div
               class="match-card"
               [class.match-now]="isNow(item.match)"
+              [class.match-done]="done"
+              [class.match-win]="result === 'win'"
+              [class.match-draw]="result === 'draw'"
+              [class.match-loss]="result === 'loss'"
               [style.--team-color]="team?.color ?? '#10B981'"
               (click)="openMatch(item)"
             >
               @if (isNow(item.match)) {
                 <div class="now-badge">LIVE</div>
+              }
+              @if (done) {
+                <div class="done-badge">Ferdig</div>
               }
               <div class="match-card-header">
                 <span class="match-time">{{ item.match.time }}</span>
@@ -94,9 +103,9 @@ import { DistributedMatch } from '../../core/models/distributed-match.model';
               </div>
               <div class="match-vs">
                 <span class="match-home">{{ item.match.homeTeam }}</span>
-                <span class="match-score">
+                <span class="match-score" [class.match-score-done]="done">
                   @if (hasGoals(item.match.id)) {
-                    {{ homeGoals(item.match.id, item.match.homeTeam) }} – {{ awayGoals(item.match.id, item.match.homeTeam) }}
+                    {{ homeGoals(item.match.id) }} – {{ awayGoals(item.match.id) }}
                   } @else {
                     vs
                   }
@@ -229,6 +238,20 @@ import { DistributedMatch } from '../../core/models/distributed-match.model';
       0%, 100% { opacity: 1; }
       50% { opacity: 0.6; }
     }
+    .done-badge {
+      position: absolute; top: 12px; right: 12px;
+      background: #1E293B; border: 1px solid #475569; color: #94A3B8;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+      padding: 2px 8px; border-radius: 999px;
+    }
+    .match-card.match-done {
+      opacity: 0.85;
+      background: #161f2e;
+    }
+    .match-card.match-win  { border-left-color: #10B981 !important; }
+    .match-card.match-draw { border-left-color: #64748B !important; }
+    .match-card.match-loss { border-left-color: #EF4444 !important; }
+    .match-score-done { font-size: 22px; }
 
     .match-card-header {
       display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
@@ -362,7 +385,8 @@ export class TodayPage implements OnInit {
     return this.teamsSvc.teams().find(t => t.id === teamId);
   }
 
-  isNow(match: { date: string; time: string }): boolean {
+  isNow(match: { date: string; time: string; homeScore?: number | null }): boolean {
+    if (match.homeScore != null) return false;
     const now = new Date();
     const matchDate = match.date === this.todayStr();
     if (!matchDate) return false;
@@ -373,16 +397,30 @@ export class TodayPage implements OnInit {
     return diff >= -15 && diff <= 105;
   }
 
+  isDone(match: { homeScore?: number | null }): boolean {
+    return match.homeScore != null;
+  }
+
+  matchResult(item: DistributedMatch): 'win' | 'draw' | 'loss' | null {
+    const match = item.match as any;
+    if (match.homeScore == null || match.awayScore == null) return null;
+    const home = match.homeScore as number;
+    const away = match.awayScore as number;
+    const weWon = match.homeGame ? home > away : away > home;
+    const weLost = match.homeGame ? home < away : away < home;
+    return weWon ? 'win' : weLost ? 'loss' : 'draw';
+  }
+
   hasGoals(matchId: string): boolean {
     return this.eventsService.eventsForMatch(matchId).some(e => e.eventType === 'goal');
   }
 
-  homeGoals(matchId: string, homeTeam: string): number {
+  homeGoals(matchId: string): number {
     return this.eventsService.eventsForMatch(matchId)
       .filter(e => e.eventType === 'goal' && e.note === 'home').length;
   }
 
-  awayGoals(matchId: string, homeTeam: string): number {
+  awayGoals(matchId: string): number {
     return this.eventsService.eventsForMatch(matchId)
       .filter(e => e.eventType === 'goal' && e.note === 'away').length;
   }
