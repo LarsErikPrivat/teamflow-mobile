@@ -11,7 +11,7 @@ import {
   footballOutline, cardOutline, swapHorizontalOutline,
   checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
   personOutline, closeOutline, chevronDownOutline, shirtOutline,
-  lockClosedOutline, lockOpenOutline
+  lockClosedOutline, lockOpenOutline, personRemoveOutline
 } from 'ionicons/icons';
 import { MatchEventsService } from '../../core/services/match-events.service';
 import { PlayersService } from '../../core/services/players.service';
@@ -89,20 +89,57 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           </div>
         </div>
 
+        <!-- EVENTS (shown above squad when events exist) -->
+        @let topEvents = eventsService.eventsForMatch(item()!.match.id);
+        @if (topEvents.length > 0) {
+          <div class="section">
+            <div class="section-header" (click)="showEvents.set(!showEvents())">
+              <span class="section-title">HENDELSER ({{ topEvents.length }})</span>
+              <ion-icon name="chevron-down-outline" class="chevron" [class.rotated]="!showEvents()" />
+            </div>
+            @if (showEvents()) {
+            <div class="event-log">
+              @for (event of topEvents; track event.id) {
+                <div class="event-row">
+                  <span class="event-icon">{{ eventIcon(event) }}</span>
+                  <span class="event-shirt">
+                    <ion-icon name="shirt-outline" class="shirt-icon" />
+                    @if (playerNumber(event.playerId); as num) {
+                      <span class="shirt-num">{{ num }}</span>
+                    }
+                  </span>
+                  <div class="event-info">
+                    <span class="event-label">{{ event.eventType === 'goal' ? (event.note === 'home' ? 'Mål · ' + item()!.match.homeTeam : 'Mål · ' + item()!.match.awayTeam) : eventLabel(event) }}</span>
+                    @if (event.playerName) {
+                      <span class="event-player">{{ event.playerName }}</span>
+                    }
+                  </div>
+                  @if (event.minute) {
+                    <span class="event-minute">{{ event.minute }}'</span>
+                  }
+                  <button class="delete-btn" (click)="removeEvent(event)">
+                    <ion-icon name="trash-outline" />
+                  </button>
+                </div>
+              }
+            </div>
+            }
+          </div>
+        }
+
         <!-- SQUAD -->
         <div class="section">
           <div class="section-header" (click)="showOnField.set(!showOnField())">
             <span class="section-title">PÅ BANEN ({{ starters().length }})</span>
             <div style="display:flex;align-items:center;gap:8px" (click)="$event.stopPropagation()">
-              <button class="swap-btn lock-btn" [class.locked]="lineupLocked()" (click)="lineupLocked.set(!lineupLocked())">
+              <button class="swap-btn icon-only" [class.locked]="lineupLocked()" [title]="lineupLocked() ? 'Lås opp' : 'Lås'" (click)="lineupLocked.set(!lineupLocked())">
                 <ion-icon [name]="lineupLocked() ? 'lock-closed-outline' : 'lock-open-outline'" />
-                {{ lineupLocked() ? 'Lås opp' : 'Lås' }}
               </button>
-              <button class="swap-btn" (click)="openSubstitution()">
-                <ion-icon name="swap-horizontal-outline" /> Innbytte
+              <button class="swap-btn icon-only" title="Innbytte" (click)="openSubstitution()">
+                <ion-icon name="swap-horizontal-outline" />
               </button>
-              <button class="swap-btn forfeit-btn" (click)="openSwap()">
-                <ion-icon name="close-outline" /> Meld forfall
+              <button class="swap-btn icon-only forfeit-btn" title="Meld forfall" (click)="openSwap()">
+                <ion-icon name="person-remove-outline" />
               </button>
               <ion-icon name="chevron-down-outline" class="chevron" [class.rotated]="!showOnField()" />
             </div>
@@ -207,43 +244,6 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           </div>
         }
 
-        <!-- EVENT LOG -->
-        @let matchEvents = eventsService.eventsForMatch(item()!.match.id);
-        @if (matchEvents.length > 0) {
-          <div class="section">
-            <div class="section-header" (click)="showEvents.set(!showEvents())">
-              <span class="section-title">HENDELSER ({{ matchEvents.length }})</span>
-              <ion-icon name="chevron-down-outline" class="chevron" [class.rotated]="!showEvents()" />
-            </div>
-            @if (showEvents()) {
-            <div class="event-log">
-              @for (event of matchEvents; track event.id) {
-                <div class="event-row">
-                  <span class="event-icon">{{ eventIcon(event) }}</span>
-                  <span class="event-shirt">
-                    <ion-icon name="shirt-outline" class="shirt-icon" />
-                    @if (playerNumber(event.playerId); as num) {
-                      <span class="shirt-num">{{ num }}</span>
-                    }
-                  </span>
-                  <div class="event-info">
-                    <span class="event-label">{{ event.eventType === 'goal' ? (event.note === 'home' ? 'Mål · ' + item()!.match.homeTeam : 'Mål · ' + item()!.match.awayTeam) : eventLabel(event) }}</span>
-                    @if (event.playerName) {
-                      <span class="event-player">{{ event.playerName }}</span>
-                    }
-                  </div>
-                  @if (event.minute) {
-                    <span class="event-minute">{{ event.minute }}'</span>
-                  }
-                  <button class="delete-btn" (click)="removeEvent(event)">
-                    <ion-icon name="trash-outline" />
-                  </button>
-                </div>
-              }
-            </div>
-            }
-          </div>
-        }
       }
     </ion-content>
 
@@ -426,6 +426,8 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       color: #94A3B8; font-size: 12px; font-weight: 600; padding: 4px 12px;
     }
     .swap-btn ion-icon { font-size: 14px; }
+    .swap-btn.icon-only { padding: 6px; width: 30px; height: 30px; justify-content: center; }
+    .swap-btn.icon-only ion-icon { font-size: 16px; }
     .forfeit-btn { border-color: #EF4444; color: #EF4444; }
     .lock-btn { border-color: #6366f1; color: #6366f1; }
     .lock-btn.locked { background: #6366f1; color: #fff; }
@@ -658,7 +660,7 @@ export class MatchDetailPage implements OnInit {
       footballOutline, cardOutline, swapHorizontalOutline,
       checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
       personOutline, closeOutline, chevronDownOutline, shirtOutline,
-      lockClosedOutline, lockOpenOutline
+      lockClosedOutline, lockOpenOutline, personRemoveOutline
     });
   }
 
