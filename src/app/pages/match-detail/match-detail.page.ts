@@ -883,7 +883,7 @@ export class MatchDetailPage implements OnInit {
       ...(this.item()?.players ?? []).map(p => p.id),
       ...this.swappedInPlayers().map(s => s.player.id)
     ]);
-    return this.playersSvc.players().filter(p => !assignedIds.has(p.id) && p.available !== false);
+    return this.allClientPlayers().filter(p => !assignedIds.has(p.id) && p.available !== false);
   });
 
   toggleStarter(player: Player) {
