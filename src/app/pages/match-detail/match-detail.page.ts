@@ -883,14 +883,16 @@ export class MatchDetailPage implements OnInit {
       ...(this.item()?.players ?? []).map(p => p.id),
       ...this.swappedInPlayers().map(s => s.player.id)
     ]);
+    const assignedNames = new Set([
+      ...(this.item()?.players ?? []).map(p => p.name),
+      ...this.swappedInPlayers().map(s => s.player.name)
+    ]);
     const seenIds = new Set<string>();
-    const seenNames = new Set<string>();
     return this.allClientPlayers()
       .filter(p => {
-        if (assignedIds.has(p.id) || p.available === false) return false;
-        if (seenIds.has(p.id) || seenNames.has(p.name)) return false;
+        if (assignedIds.has(p.id) || assignedNames.has(p.name)) return false;
+        if (seenIds.has(p.id)) return false;
         seenIds.add(p.id);
-        seenNames.add(p.name);
         return true;
       })
       .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
