@@ -89,6 +89,22 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           </div>
         </div>
 
+        <!-- PERSISTENT ACTION BAR -->
+        <div class="action-bar">
+          <button class="action-bar-btn" [class.locked]="lineupLocked()" [title]="lineupLocked() ? 'Lås opp' : 'Lås'" (click)="lineupLocked.set(!lineupLocked())">
+            <ion-icon [name]="lineupLocked() ? 'lock-closed-outline' : 'lock-open-outline'" />
+            <span>{{ lineupLocked() ? 'Lås opp' : 'Lås' }}</span>
+          </button>
+          <button class="action-bar-btn" (click)="openSubstitution()">
+            <ion-icon name="swap-horizontal-outline" />
+            <span>Innbytte</span>
+          </button>
+          <button class="action-bar-btn forfeit" (click)="openSwap()">
+            <ion-icon name="person-remove-outline" />
+            <span>Forfall</span>
+          </button>
+        </div>
+
         <!-- EVENTS (shown above squad when events exist) -->
         @let topEvents = eventsService.eventsForMatch(item()!.match.id);
         @if (topEvents.length > 0) {
@@ -131,18 +147,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         <div class="section">
           <div class="section-header" (click)="showOnField.set(!showOnField())">
             <span class="section-title">PÅ BANEN ({{ starters().length }})</span>
-            <div style="display:flex;align-items:center;gap:8px" (click)="$event.stopPropagation()">
-              <button class="swap-btn icon-only" [class.locked]="lineupLocked()" [title]="lineupLocked() ? 'Lås opp' : 'Lås'" (click)="lineupLocked.set(!lineupLocked())">
-                <ion-icon [name]="lineupLocked() ? 'lock-closed-outline' : 'lock-open-outline'" />
-              </button>
-              <button class="swap-btn icon-only" title="Innbytte" (click)="openSubstitution()">
-                <ion-icon name="swap-horizontal-outline" />
-              </button>
-              <button class="swap-btn icon-only forfeit-btn" title="Meld forfall" (click)="openSwap()">
-                <ion-icon name="person-remove-outline" />
-              </button>
-              <ion-icon name="chevron-down-outline" class="chevron" [class.rotated]="!showOnField()" />
-            </div>
+            <ion-icon name="chevron-down-outline" class="chevron" [class.rotated]="!showOnField()" />
           </div>
 
           @if (showOnField()) {
@@ -420,17 +425,24 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       transition: transform 0.2s ease;
     }
     .chevron.rotated { transform: rotate(-90deg); }
+    .action-bar {
+      display: flex; gap: 8px; padding: 0 16px 12px;
+    }
+    .action-bar-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background: #1E293B; border: 1px solid #334155; border-radius: 12px;
+      color: #94A3B8; font-size: 11px; font-weight: 600; padding: 8px 4px;
+      cursor: pointer;
+    }
+    .action-bar-btn ion-icon { font-size: 20px; }
+    .action-bar-btn.locked { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,0.12); }
+    .action-bar-btn.forfeit { border-color: #EF4444; color: #EF4444; }
     .swap-btn {
       display: flex; align-items: center; gap: 4px;
       background: #1E293B; border: 1px solid #334155; border-radius: 999px;
       color: #94A3B8; font-size: 12px; font-weight: 600; padding: 4px 12px;
     }
     .swap-btn ion-icon { font-size: 14px; }
-    .swap-btn.icon-only { padding: 6px; width: 30px; height: 30px; justify-content: center; }
-    .swap-btn.icon-only ion-icon { font-size: 16px; }
-    .forfeit-btn { border-color: #EF4444; color: #EF4444; }
-    .lock-btn { border-color: #6366f1; color: #6366f1; }
-    .lock-btn.locked { background: #6366f1; color: #fff; }
 
     /* PLAYER LIST */
     .player-list { display: flex; flex-direction: column; gap: 6px; }
