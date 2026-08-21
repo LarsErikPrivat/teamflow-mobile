@@ -10,7 +10,8 @@ import { addIcons } from 'ionicons';
 import {
   footballOutline, cardOutline, swapHorizontalOutline,
   checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
-  personOutline, closeOutline, chevronDownOutline, shirtOutline
+  personOutline, closeOutline, chevronDownOutline, shirtOutline,
+  lockClosedOutline, lockOpenOutline
 } from 'ionicons/icons';
 import { MatchEventsService } from '../../core/services/match-events.service';
 import { PlayersService } from '../../core/services/players.service';
@@ -93,6 +94,10 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           <div class="section-header" (click)="showOnField.set(!showOnField())">
             <span class="section-title">PÅ BANEN ({{ starters().length }})</span>
             <div style="display:flex;align-items:center;gap:8px" (click)="$event.stopPropagation()">
+              <button class="swap-btn lock-btn" [class.locked]="lineupLocked()" (click)="lineupLocked.set(!lineupLocked())">
+                <ion-icon [name]="lineupLocked() ? 'lock-closed-outline' : 'lock-open-outline'" />
+                {{ lineupLocked() ? 'Lås opp' : 'Lås' }}
+              </button>
               <button class="swap-btn" (click)="openSubstitution()">
                 <ion-icon name="swap-horizontal-outline" /> Innbytte
               </button>
@@ -422,6 +427,8 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     }
     .swap-btn ion-icon { font-size: 14px; }
     .forfeit-btn { border-color: #EF4444; color: #EF4444; }
+    .lock-btn { border-color: #6366f1; color: #6366f1; }
+    .lock-btn.locked { background: #6366f1; color: #fff; }
 
     /* PLAYER LIST */
     .player-list { display: flex; flex-direction: column; gap: 6px; }
@@ -539,6 +546,7 @@ export class MatchDetailPage implements OnInit {
   subMinute: number | null = null;
 
   readonly starterIds = signal<Set<string>>(new Set());
+  readonly lineupLocked = signal(false);
   private starterStorageKey = '';
 
   private loadStarterIds(matchId: string) {
@@ -635,6 +643,7 @@ export class MatchDetailPage implements OnInit {
   });
 
   toggleStarter(player: Player) {
+    if (this.lineupLocked()) return;
     if (this.isAbsent(player.id)) return;
     this.starterIds.update(s => {
       const next = new Set(s);
@@ -648,7 +657,8 @@ export class MatchDetailPage implements OnInit {
     addIcons({
       footballOutline, cardOutline, swapHorizontalOutline,
       checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
-      personOutline, closeOutline, chevronDownOutline, shirtOutline
+      personOutline, closeOutline, chevronDownOutline, shirtOutline,
+      lockClosedOutline, lockOpenOutline
     });
   }
 
