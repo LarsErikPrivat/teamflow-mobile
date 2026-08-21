@@ -11,7 +11,8 @@ import {
   footballOutline, cardOutline, swapHorizontalOutline,
   checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
   personOutline, closeOutline, chevronDownOutline, shirtOutline,
-  lockClosedOutline, lockOpenOutline, personRemoveOutline
+  lockClosedOutline, lockOpenOutline, personRemoveOutline,
+  pauseOutline, playOutline, timerOutline
 } from 'ionicons/icons';
 import { MatchEventsService } from '../../core/services/match-events.service';
 import { PlayersService } from '../../core/services/players.service';
@@ -41,6 +42,11 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           <ion-back-button defaultHref="/tabs/today" text="" />
         </ion-buttons>
         <ion-title style="color: white">{{ teamName() }}</ion-title>
+        @if (phaseLabel()) {
+          <div slot="end" class="phase-badge" [class]="'phase-' + currentPhase()">
+            {{ phaseLabel() }}
+          </div>
+        }
       </ion-toolbar>
     </ion-header>
 
@@ -102,6 +108,22 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           <button class="action-bar-btn forfeit" (click)="openSwap()">
             <ion-icon name="person-remove-outline" />
             <span>Forfall</span>
+          </button>
+          @if (currentPhase() === 'first' || currentPhase() === 'second') {
+            <button class="action-bar-btn pause-btn" (click)="manuallyPaused.set(true)">
+              <ion-icon name="pause-outline" />
+              <span>Pause</span>
+            </button>
+          }
+          @if (currentPhase() === 'break' && manuallyPaused()) {
+            <button class="action-bar-btn resume-btn" (click)="manuallyPaused.set(false)">
+              <ion-icon name="play-outline" />
+              <span>Fortsett</span>
+            </button>
+          }
+          <button class="action-bar-btn settings-btn" (click)="openTimingSettings()">
+            <ion-icon name="timer-outline" />
+            <span>Tider</span>
           </button>
         </div>
 
@@ -414,9 +436,44 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         </ion-content>
       </ng-template>
     </ion-modal>
+
+    <!-- TIMING MODAL -->
+    <ion-modal [isOpen]="timingModalOpen()" (didDismiss)="timingModalOpen.set(false)" [breakpoints]="[0,1]" [initialBreakpoint]="1">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Kampvarighet</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="timingModalOpen.set(false)"><ion-icon name="close-outline" /></ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="modal-content">
+          <div class="field-label">Omgangens varighet (min)</div>
+          <ion-input class="minute-input" type="number" [(ngModel)]="tempHalfDuration" fill="outline" />
+          <div class="field-label" style="margin-top:16px">Pausens varighet (min)</div>
+          <ion-input class="minute-input" type="number" [(ngModel)]="tempBreakDuration" fill="outline" />
+          <ion-button expand="block" class="confirm-btn" style="margin-top:24px" (click)="saveTiming()">
+            Lagre
+          </ion-button>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
   `,
   styles: [`
     ion-toolbar { --color: white; }
+    .phase-badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: 999px; margin-right: 8px;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap;
+    }
+    .phase-first  { background: rgba(16,185,129,0.25); color: #10B981; }
+    .phase-break  { background: rgba(251,191,36,0.25); color: #FBBF24; }
+    .phase-second { background: rgba(99,102,241,0.25); color: #818CF8; }
+    .phase-done   { background: rgba(100,116,139,0.2); color: #94A3B8; }
+    .pause-btn { border-color: #FBBF24 !important; color: #FBBF24 !important; }
+    .resume-btn { border-color: #10B981 !important; color: #10B981 !important; }
+    .settings-btn { border-color: #475569 !important; color: #64748B !important; }
     .page-content { --background: #0F172A; }
 
     /* SCOREBOARD */
@@ -619,13 +676,43 @@ export class MatchDetailPage implements OnInit {
     if (!match?.date || !match?.time) return false;
     return new Date(`${match.date}T${match.time}`) <= new Date();
   });
-  readonly currentMatchMinute = computed(() => {
+  readonly halfDuration = signal(35);
+  readonly breakDuration = signal(5);
+  readonly manuallyPaused = signal(false);
+  readonly timingModalOpen = signal(false);
+  tempHalfDuration = 35;
+  tempBreakDuration = 5;
+
+  readonly elapsedMinutes = computed(() => {
     const match = this.item()?.match;
     if (!match?.date || !match?.time) return null;
     const kickoff = new Date(`${match.date}T${match.time}`).getTime();
     const elapsed = Math.floor((Date.now() - kickoff) / 60000);
-    if (elapsed < 0) return null;
-    return Math.min(90, elapsed);
+    return elapsed < 0 ? null : elapsed;
+  });
+
+  readonly currentPhase = computed((): 'before' | 'first' | 'break' | 'second' | 'done' => {
+    if (this.manuallyPaused()) return 'break';
+    const elapsed = this.elapsedMinutes();
+    if (elapsed === null) return 'before';
+    const half = this.halfDuration();
+    const brk = this.breakDuration();
+    if (elapsed < half) return 'first';
+    if (elapsed < half + brk) return 'break';
+    if (elapsed < half * 2 + brk) return 'second';
+    return 'done';
+  });
+
+  readonly currentMatchMinute = computed(() => {
+    const elapsed = this.elapsedMinutes();
+    if (elapsed === null) return null;
+    const half = this.halfDuration();
+    const brk = this.breakDuration();
+    const phase = this.currentPhase();
+    if (phase === 'first') return Math.min(half, elapsed);
+    if (phase === 'break') return half;
+    if (phase === 'second' || phase === 'done') return Math.min(half, elapsed - brk);
+    return null;
   });
 
   minutesPlayed(playerId: string): number | null {
@@ -658,11 +745,44 @@ export class MatchDetailPage implements OnInit {
     if (raw) {
       try { this.starterIds.set(new Set(JSON.parse(raw))); } catch {}
     }
+    const half = localStorage.getItem(`timing_half_${matchId}`);
+    const brk = localStorage.getItem(`timing_break_${matchId}`);
+    if (half) this.halfDuration.set(+half);
+    if (brk) this.breakDuration.set(+brk);
+    this.tempHalfDuration = this.halfDuration();
+    this.tempBreakDuration = this.breakDuration();
   }
 
   private saveStarterIds() {
     if (this.starterStorageKey) {
       localStorage.setItem(this.starterStorageKey, JSON.stringify([...this.starterIds()]));
+    }
+  }
+
+  openTimingSettings() {
+    this.tempHalfDuration = this.halfDuration();
+    this.tempBreakDuration = this.breakDuration();
+    this.timingModalOpen.set(true);
+  }
+
+  saveTiming() {
+    this.halfDuration.set(this.tempHalfDuration);
+    this.breakDuration.set(this.tempBreakDuration);
+    const matchId = this.item()?.match.id;
+    if (matchId) {
+      localStorage.setItem(`timing_half_${matchId}`, String(this.tempHalfDuration));
+      localStorage.setItem(`timing_break_${matchId}`, String(this.tempBreakDuration));
+    }
+    this.timingModalOpen.set(false);
+  }
+
+  phaseLabel(): string {
+    switch (this.currentPhase()) {
+      case 'first': return '1. omgang';
+      case 'break': return 'Pause';
+      case 'second': return '2. omgang';
+      case 'done': return 'Ferdig';
+      default: return '';
     }
   }
   readonly showOnField = signal(true);
@@ -785,7 +905,8 @@ export class MatchDetailPage implements OnInit {
       footballOutline, cardOutline, swapHorizontalOutline,
       checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
       personOutline, closeOutline, chevronDownOutline, shirtOutline,
-      lockClosedOutline, lockOpenOutline, personRemoveOutline
+      lockClosedOutline, lockOpenOutline, personRemoveOutline,
+      pauseOutline, playOutline, timerOutline
     });
   }
 
