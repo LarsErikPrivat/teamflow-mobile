@@ -122,19 +122,11 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                     @let outId = subOutPlayerIdFromNote(event.note);
                     <span class="event-shirt">
                       <ion-icon name="shirt-outline" class="shirt-icon" />
-                      @if (playerNumber(event.playerId); as num) {
-                        <span class="shirt-num">{{ num }}</span>
-                      } @else {
-                        <span class="shirt-num shirt-initials">{{ playerInitials(event.playerName) }}</span>
-                      }
+                      <span class="shirt-num">{{ playerNumber(event.playerId) ?? '-' }}</span>
                     </span>
                     <span class="event-shirt sub-out-shirt">
                       <ion-icon name="shirt-outline" class="shirt-icon" style="color:#475569" />
-                      @if (playerNumber(outId); as num) {
-                        <span class="shirt-num" style="color:#94A3B8">{{ num }}</span>
-                      } @else {
-                        <span class="shirt-num shirt-initials" style="color:#94A3B8">{{ playerInitials(outPlayerName(outId)) }}</span>
-                      }
+                      <span class="shirt-num" style="color:#94A3B8">{{ playerNumber(outId) ?? '-' }}</span>
                     </span>
                     <div class="event-info">
                       <span class="event-label">Innbytte</span>
@@ -143,9 +135,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                     <span class="event-icon">{{ eventIcon(event) }}</span>
                     <span class="event-shirt">
                       <ion-icon name="shirt-outline" class="shirt-icon" />
-                      @if (playerNumber(event.playerId); as num) {
-                        <span class="shirt-num">{{ num }}</span>
-                      }
+                      <span class="shirt-num">{{ playerNumber(event.playerId) ?? '-' }}</span>
                     </span>
                     <div class="event-info">
                       <span class="event-label">{{ event.eventType === 'goal' ? (event.note === 'home' ? 'Mål · ' + item()!.match.homeTeam : 'Mål · ' + item()!.match.awayTeam) : eventLabel(event) }}</span>
