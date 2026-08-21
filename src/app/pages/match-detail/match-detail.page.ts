@@ -311,6 +311,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           <div class="player-picker">
             @for (player of startersNotSwapped(); track player.id) {
               <button class="picker-player" [class.selected]="subOutId() === player.id" (click)="subOutId.set(player.id)">
+                @if (player.number) { <span class="picker-nr">{{ player.number }}</span> }
                 {{ player.name }}
               </button>
             }
@@ -319,6 +320,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
           <div class="player-picker">
             @for (player of bench(); track player.id) {
               <button class="picker-player" [class.selected]="subInId() === player.id" (click)="subInId.set(player.id)">
+                @if (player.number) { <span class="picker-nr">{{ player.number }}</span> }
                 {{ player.name }}
               </button>
             }
@@ -526,6 +528,12 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     }
     .picker-player.selected {
       background: #10B981; border-color: #10B981; color: white;
+    }
+    .picker-nr {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 18px; padding: 0 4px;
+      background: rgba(255,255,255,0.12); border-radius: 4px;
+      font-size: 11px; font-weight: 900; margin-right: 4px;
     }
     .minute-input {
       --background: #1E293B; --color: #F8FAFC; --border-color: #334155;
