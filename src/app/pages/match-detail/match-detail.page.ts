@@ -118,18 +118,24 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               @for (event of topEvents; track event.id) {
                 <div class="event-row">
                   @if (event.eventType === 'substitution') {
-                    <ion-icon name="swap-horizontal-outline" class="event-swap-icon" />
                     @let outId = subOutPlayerIdFromNote(event.note);
-                    <span class="event-shirt">
-                      <ion-icon name="shirt-outline" class="shirt-icon" />
-                      <span class="shirt-num">{{ playerNumber(event.playerId) ?? '-' }}</span>
-                    </span>
-                    <span class="event-shirt sub-out-shirt">
-                      <ion-icon name="shirt-outline" class="shirt-icon" style="color:#475569" />
-                      <span class="shirt-num" style="color:#94A3B8">{{ playerNumber(outId) ?? '-' }}</span>
-                    </span>
-                    <div class="event-info">
-                      <span class="event-label">Innbytte</span>
+                    <div class="sub-event">
+                      <div class="sub-player sub-in">
+                        <span class="sub-shirt">
+                          <ion-icon name="shirt-outline" class="shirt-icon" />
+                          <span class="shirt-num">{{ playerNumber(event.playerId) ?? '-' }}</span>
+                        </span>
+                        <span class="sub-name">{{ event.playerName }}</span>
+                        <span class="sub-badge in">INN</span>
+                      </div>
+                      <div class="sub-player sub-out">
+                        <span class="sub-shirt out">
+                          <ion-icon name="shirt-outline" class="shirt-icon" />
+                          <span class="shirt-num">{{ playerNumber(outId) ?? '-' }}</span>
+                        </span>
+                        <span class="sub-name out">{{ outPlayerName(outId) }}</span>
+                        <span class="sub-badge out">UT</span>
+                      </div>
                     </div>
                   } @else {
                     <span class="event-icon">{{ eventIcon(event) }}</span>
@@ -492,9 +498,6 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .card-badge { font-size: 16px; line-height: 1; }
 
     /* EVENT LOG */
-    .event-swap-icon { font-size: 16px; color: #10B981; flex-shrink: 0; }
-    .sub-out-shirt .shirt-icon { color: #475569 !important; }
-    .shirt-initials { font-size: 7px !important; letter-spacing: -0.02em; }
     .event-log { display: flex; flex-direction: column; gap: 3px; }
     .event-row {
       display: flex; align-items: center; gap: 8px;
@@ -512,6 +515,19 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       background: none; border: none; color: #475569; padding: 2px 4px;
       font-size: 14px; cursor: pointer; flex-shrink: 0;
     }
+    /* Substitution event layout */
+    .sub-event { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+    .sub-player { display: flex; align-items: center; gap: 6px; }
+    .sub-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 22px; height: 22px; }
+    .sub-shirt .shirt-icon { font-size: 22px; color: #10B981; }
+    .sub-shirt .shirt-num { position: absolute; font-size: 7px; font-weight: 900; color: #F8FAFC; margin-top: 3px; }
+    .sub-shirt.out .shirt-icon { color: #475569; }
+    .sub-shirt.out .shirt-num { color: #94A3B8; }
+    .sub-name { font-size: 12px; font-weight: 600; color: #F8FAFC; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sub-name.out { color: #64748B; font-weight: 500; }
+    .sub-badge { font-size: 9px; font-weight: 800; letter-spacing: 0.05em; padding: 1px 5px; border-radius: 4px; flex-shrink: 0; }
+    .sub-badge.in { background: rgba(16,185,129,0.15); color: #10B981; }
+    .sub-badge.out { background: rgba(100,116,139,0.15); color: #64748B; }
 
     /* FULL TIME */
     .fulltime-row { padding: 12px 0 0; }
