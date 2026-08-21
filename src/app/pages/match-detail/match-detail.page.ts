@@ -318,14 +318,6 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               </button>
             }
           </div>
-          <div class="field-label" style="margin-top: 16px">Minutt (valgfritt)</div>
-          <ion-input
-            class="minute-input"
-            type="number"
-            placeholder="f.eks. 34"
-            [(ngModel)]="pendingMinute"
-            fill="outline"
-          />
           <ion-button expand="block" class="confirm-btn" (click)="confirmEvent()">
             Registrer
           </ion-button>
@@ -371,8 +363,6 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               </button>
             }
           </div>
-          <div class="field-label" style="margin-top:16px">Minutt (valgfritt)</div>
-          <ion-input class="minute-input" type="number" placeholder="f.eks. 55" [(ngModel)]="subMinute" fill="outline" />
           <ion-button expand="block" class="confirm-btn" [disabled]="!subOutId() || !subInId()" (click)="confirmSubstitution()">
             Registrer innbytte
           </ion-button>
