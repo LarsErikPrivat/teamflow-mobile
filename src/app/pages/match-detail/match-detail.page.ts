@@ -712,26 +712,31 @@ export class MatchDetailPage implements OnInit {
     return null;
   });
 
-  minutesPlayed(playerId: string): number | null {
+  readonly minutesPlayedMap = computed((): Map<string, number> => {
     const currentMin = this.currentMatchMinute();
-    if (currentMin === null) return null;
+    const map = new Map<string, number>();
+    if (currentMin === null) return map;
     const matchId = this.item()?.match.id;
-    if (!matchId) return null;
-    const events = this.eventsService.eventsForMatch(matchId);
-    const subEvents = events.filter(e => e.eventType === 'substitution');
+    if (!matchId) return map;
+    // Reading eventsService.events() makes this reactive to event changes
+    const subEvents = this.eventsService.events()
+      .filter(e => e.matchId === matchId && e.eventType === 'substitution');
+    const starterIds = this.starterIds();
 
-    // Check if this player was subbed out
-    const subbedOut = subEvents.find(e => this.subOutPlayerIdFromNote(e.note) === playerId);
-    if (subbedOut) return subbedOut.minute ?? currentMin;
+    for (const id of starterIds) {
+      const subbedOut = subEvents.find(e => this.subOutPlayerIdFromNote(e.note) === id);
+      map.set(id, subbedOut ? (subbedOut.minute ?? currentMin) : currentMin);
+    }
+    for (const ev of subEvents) {
+      if (ev.playerId) {
+        map.set(ev.playerId, currentMin - (ev.minute ?? 0));
+      }
+    }
+    return map;
+  });
 
-    // Check if this player came on as sub
-    const subbedIn = subEvents.find(e => e.playerId === playerId);
-    if (subbedIn) return currentMin - (subbedIn.minute ?? 0);
-
-    // Starter
-    if (this.starterIds().has(playerId)) return currentMin;
-
-    return null;
+  minutesPlayed(playerId: string): number | null {
+    return this.minutesPlayedMap().get(playerId) ?? null;
   }
 
   private starterStorageKey = '';
