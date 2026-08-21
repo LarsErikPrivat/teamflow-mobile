@@ -119,24 +119,18 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                 <div class="event-row">
                   @if (event.eventType === 'substitution') {
                     @let outId = subOutPlayerIdFromNote(event.note);
-                    <div class="sub-event">
-                      <div class="sub-player sub-in">
-                        <span class="sub-shirt">
-                          <ion-icon name="shirt-outline" class="shirt-icon" />
-                          <span class="shirt-num">{{ playerNumber(event.playerId) ?? '-' }}</span>
-                        </span>
-                        <span class="sub-name">{{ event.playerName }}</span>
-                        <span class="sub-badge in">INN</span>
-                      </div>
-                      <div class="sub-player sub-out">
-                        <span class="sub-shirt out">
-                          <ion-icon name="shirt-outline" class="shirt-icon" />
-                          <span class="shirt-num">{{ playerNumber(outId) ?? '-' }}</span>
-                        </span>
-                        <span class="sub-name out">{{ outPlayerName(outId) }}</span>
-                        <span class="sub-badge out">UT</span>
-                      </div>
-                    </div>
+                    <ion-icon name="swap-horizontal-outline" class="event-swap-icon" />
+                    <span class="sub-shirt-inline">
+                      <ion-icon name="shirt-outline" class="shirt-icon" />
+                      <span class="shirt-num">{{ playerNumber(event.playerId) ?? '-' }}</span>
+                    </span>
+                    <span class="sub-initials-inline in">{{ playerInitials(event.playerName) }}</span>
+                    <span class="sub-arrow">›</span>
+                    <span class="sub-shirt-inline out">
+                      <ion-icon name="shirt-outline" class="shirt-icon" />
+                      <span class="shirt-num">{{ playerNumber(outId) ?? '-' }}</span>
+                    </span>
+                    <span class="sub-initials-inline out">{{ playerInitials(outPlayerName(outId)) }}</span>
                   } @else {
                     <span class="event-icon">{{ eventIcon(event) }}</span>
                     <span class="event-shirt">
@@ -518,19 +512,16 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       background: none; border: none; color: #475569; padding: 2px 4px;
       font-size: 14px; cursor: pointer; flex-shrink: 0;
     }
-    /* Substitution event layout */
-    .sub-event { flex: 1; display: flex; flex-direction: column; gap: 3px; }
-    .sub-player { display: flex; align-items: center; gap: 6px; }
-    .sub-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 22px; height: 22px; }
-    .sub-shirt .shirt-icon { font-size: 22px; color: #10B981; }
-    .sub-shirt .shirt-num { position: absolute; font-size: 7px; font-weight: 900; color: #F8FAFC; margin-top: 3px; }
-    .sub-shirt.out .shirt-icon { color: #475569; }
-    .sub-shirt.out .shirt-num { color: #94A3B8; }
-    .sub-name { font-size: 12px; font-weight: 600; color: #F8FAFC; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .sub-name.out { color: #64748B; font-weight: 500; }
-    .sub-badge { font-size: 9px; font-weight: 800; letter-spacing: 0.05em; padding: 1px 5px; border-radius: 4px; flex-shrink: 0; }
-    .sub-badge.in { background: rgba(16,185,129,0.15); color: #10B981; }
-    .sub-badge.out { background: rgba(100,116,139,0.15); color: #64748B; }
+    /* Substitution event layout — single line */
+    .event-swap-icon { font-size: 15px; color: #10B981; flex-shrink: 0; }
+    .sub-shirt-inline { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 22px; height: 22px; }
+    .sub-shirt-inline .shirt-icon { font-size: 22px; color: #10B981; }
+    .sub-shirt-inline .shirt-num { position: absolute; font-size: 7px; font-weight: 900; color: #F8FAFC; margin-top: 3px; }
+    .sub-shirt-inline.out .shirt-icon { color: #475569; }
+    .sub-shirt-inline.out .shirt-num { color: #94A3B8; }
+    .sub-initials-inline { font-size: 11px; font-weight: 700; color: #F8FAFC; white-space: nowrap; }
+    .sub-initials-inline.out { color: #64748B; }
+    .sub-arrow { font-size: 13px; color: #475569; flex-shrink: 0; }
 
     /* FULL TIME */
     .fulltime-row { padding: 12px 0 0; }
