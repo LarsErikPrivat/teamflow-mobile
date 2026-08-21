@@ -476,20 +476,22 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .card-badge { font-size: 16px; line-height: 1; }
 
     /* EVENT LOG */
-    .event-log { display: flex; flex-direction: column; gap: 6px; }
+    .event-log { display: flex; flex-direction: column; gap: 3px; }
     .event-row {
-      display: flex; align-items: center; gap: 10px;
-      background: #1E293B; border-radius: 10px; padding: 10px 12px;
+      display: flex; align-items: center; gap: 8px;
+      background: #1E293B; border-radius: 8px; padding: 6px 10px;
     }
-    .event-icon { font-size: 20px; flex-shrink: 0; }
-    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 46px; height: 46px; }
-    .event-info { flex: 1; }
-    .event-label { display: block; font-size: 13px; font-weight: 700; color: #F8FAFC; }
-    .event-player { display: block; font-size: 11px; color: #64748B; }
-    .event-minute { font-size: 13px; font-weight: 800; color: #94A3B8; }
+    .event-icon { font-size: 15px; flex-shrink: 0; line-height: 1; }
+    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 26px; height: 26px; }
+    .event-shirt .shirt-icon { font-size: 26px; color: #475569; }
+    .event-shirt .shirt-num { position: absolute; font-size: 8px; font-weight: 900; color: #F8FAFC; margin-top: 4px; }
+    .event-info { flex: 1; display: flex; align-items: baseline; gap: 5px; overflow: hidden; }
+    .event-label { font-size: 12px; font-weight: 700; color: #F8FAFC; white-space: nowrap; }
+    .event-player { font-size: 11px; color: #64748B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .event-minute { font-size: 11px; font-weight: 800; color: #64748B; flex-shrink: 0; }
     .delete-btn {
-      background: none; border: none; color: #475569; padding: 4px;
-      font-size: 16px; cursor: pointer;
+      background: none; border: none; color: #475569; padding: 2px 4px;
+      font-size: 14px; cursor: pointer; flex-shrink: 0;
     }
 
     /* FULL TIME */
