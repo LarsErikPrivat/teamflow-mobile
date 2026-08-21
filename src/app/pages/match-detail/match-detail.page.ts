@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
@@ -44,6 +44,9 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         <ion-title style="color: white">{{ teamName() }}</ion-title>
         @if (phaseLabel()) {
           <div slot="end" class="phase-badge" [class]="'phase-' + currentPhase()">
+            @if (currentMatchMinute() !== null) {
+              <span class="phase-clock">{{ currentMatchMinute() }}'</span>
+            }
             {{ phaseLabel() }}
           </div>
         }
@@ -460,11 +463,12 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
   styles: [`
     ion-toolbar { --color: white; }
     .phase-badge {
-      display: inline-flex; align-items: center;
+      display: inline-flex; align-items: center; gap: 5px;
       padding: 4px 10px; border-radius: 999px; margin-right: 8px;
       font-size: 11px; font-weight: 800; letter-spacing: 0.06em; white-space: nowrap;
       border: 1.5px solid rgba(255,255,255,0.5);
     }
+    .phase-clock { font-size: 13px; font-weight: 900; font-variant-numeric: tabular-nums; }
     .phase-first  { background: rgba(16,185,129,0.35); color: #fff; }
     .phase-break  { background: rgba(251,191,36,0.4);  color: #fff; }
     .phase-second { background: rgba(139,92,246,0.4);  color: #fff; }
@@ -649,7 +653,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .confirm-btn { --background: #10B981; margin-top: 20px; }
   `]
 })
-export class MatchDetailPage implements OnInit {
+export class MatchDetailPage implements OnInit, OnDestroy {
   readonly eventsService = inject(MatchEventsService);
   private readonly playersSvc = inject(PlayersService);
   private readonly teamsSvc = inject(TeamsService);
@@ -689,8 +693,11 @@ export class MatchDetailPage implements OnInit {
   readonly timingModalOpen = signal(false);
   tempHalfDuration = 35;
   tempBreakDuration = 5;
+  private readonly _tick = signal(0);
+  private _tickInterval: ReturnType<typeof setInterval> | null = null;
 
   readonly elapsedMinutes = computed(() => {
+    this._tick(); // subscribe to tick for reactivity
     const match = this.item()?.match;
     if (!match?.date || !match?.time) return null;
     const kickoff = new Date(`${match.date}T${match.time}`).getTime();
@@ -934,7 +941,12 @@ export class MatchDetailPage implements OnInit {
     });
   }
 
+  ngOnDestroy() {
+    if (this._tickInterval) clearInterval(this._tickInterval);
+  }
+
   async ngOnInit() {
+    this._tickInterval = setInterval(() => this._tick.update(t => t + 1), 1000);
     const state = (window.history.state ?? {}) as { item?: DistributedMatch };
     // Route param is always present; history state only exists on first navigation
     const matchId = (this.route.snapshot.paramMap.get('id') ?? state?.item?.match?.id) as string | null;
