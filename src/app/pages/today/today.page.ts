@@ -370,7 +370,7 @@ export class TodayPage implements OnInit {
     const patched = matches.map(dm => {
       const live = liveMatches.find(m => m.id === dm.match.id);
       if (!live) return dm;
-      return { ...dm, match: { ...dm.match, date: live.date, time: live.time } };
+      return { ...dm, match: { ...dm.match, date: live.date, time: live.time, homeScore: live.homeScore ?? dm.match.homeScore, awayScore: live.awayScore ?? dm.match.awayScore } };
     });
     this.allMatches.set(patched);
     this.loading.set(false);
