@@ -120,6 +120,11 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               <span>Tilbakestill</span>
             </button>
           }
+          @if (currentPhase() !== 'before' && currentPhase() !== 'done') {
+            <button class="action-bar-btn reset-btn reset-btn-sm" (click)="resetMatch()">
+              <ion-icon name="refresh-outline" />
+            </button>
+          }
         </div>
 
         <!-- EVENTS (shown above squad when events exist) -->
@@ -470,6 +475,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .resume-btn   { border-color: #10B981 !important; color: #10B981 !important; }
     .end-btn      { border-color: #6366F1 !important; color: #6366F1 !important; }
     .reset-btn    { border-color: #475569 !important; color: #64748B !important; }
+    .reset-btn-sm { flex: 0 0 44px; min-width: 0; padding: 0; }
 
     /* UNIFIED MODAL */
     .unified-tabs {
