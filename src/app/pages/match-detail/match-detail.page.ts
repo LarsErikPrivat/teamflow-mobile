@@ -560,7 +560,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .picker-player {
       padding: 8px 14px; background: #1E293B; border: 1.5px solid #334155;
       border-radius: 999px; color: #F8FAFC; font-size: 13px; font-weight: 600;
-      cursor: pointer;
+      cursor: pointer; min-width: 120px;
     }
     .picker-player.selected {
       background: #10B981; border-color: #10B981; color: white;
