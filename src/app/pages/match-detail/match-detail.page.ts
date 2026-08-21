@@ -761,30 +761,41 @@ export class MatchDetailPage implements OnInit, OnDestroy {
 
   readonly minutesPlayedMap = computed((): Map<string, number> => {
     const currentMin = this.currentMatchMinute();
-    const map = new Map<string, number>();
-    if (currentMin === null) return map;
+    const accumulated = new Map<string, number>();
+    if (currentMin === null) return accumulated;
     const matchId = this.item()?.match.id;
-    if (!matchId) return map;
-    // Reading eventsService.events() makes this reactive to event changes
-    const subEvents = this.eventsService.events()
-      .filter(e => e.matchId === matchId && e.eventType === 'substitution');
-    const starterIds = this.starterIds();
+    if (!matchId) return accumulated;
 
-    for (const id of starterIds) {
-      const subbedOut = subEvents.find(e => this.subOutPlayerIdFromNote(e.note) === id);
-      map.set(id, subbedOut ? (subbedOut.minute ?? currentMin) : currentMin);
+    const subEvents = this.eventsService.events()
+      .filter(e => e.matchId === matchId && e.eventType === 'substitution')
+      .sort((a, b) => (a.minute ?? 0) - (b.minute ?? 0));
+
+    // Track when each player last stepped onto the pitch (playerId -> minute entered)
+    const enteredAt = new Map<string, number>();
+    for (const id of this.starterIds()) {
+      enteredAt.set(id, 0);
     }
+
     for (const ev of subEvents) {
-      if (ev.playerId) {
-        map.set(ev.playerId, currentMin - (ev.minute ?? 0));
-      }
-      // Preserve minutes for players who were subbed out (removed from starterIds)
+      const minute = ev.minute ?? 0;
       const outId = this.subOutPlayerIdFromNote(ev.note);
-      if (outId && !map.has(outId)) {
-        map.set(outId, ev.minute ?? currentMin);
+      const inId = ev.playerId;
+
+      if (outId && enteredAt.has(outId)) {
+        accumulated.set(outId, (accumulated.get(outId) ?? 0) + (minute - enteredAt.get(outId)!));
+        enteredAt.delete(outId);
+      }
+      if (inId) {
+        enteredAt.set(inId, minute);
       }
     }
-    return map;
+
+    // Accumulate remaining time for all currently on-pitch players
+    for (const [id, entered] of enteredAt) {
+      accumulated.set(id, (accumulated.get(id) ?? 0) + (currentMin - entered));
+    }
+
+    return accumulated;
   });
 
   minutesPlayed(playerId: string): number | null {
