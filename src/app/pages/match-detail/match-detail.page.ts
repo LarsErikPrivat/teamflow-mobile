@@ -94,7 +94,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
             </button>
             <button class="action-bar-btn halftime-btn" (click)="callHalftime()">
               <ion-icon name="pause-outline" />
-              <span>Halvtid</span>
+              <span>Pause</span>
             </button>
           }
           @if (currentPhase() === 'break') {
