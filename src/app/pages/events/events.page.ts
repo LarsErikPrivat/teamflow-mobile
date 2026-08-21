@@ -168,7 +168,7 @@ export class EventsPage implements OnInit {
         matchDate: m ? `${m.match.date} ${m.match.time}` : '',
         homeTeam: m?.match.homeTeam ?? 'Hjemme',
         awayTeam: m?.match.awayTeam ?? 'Borte',
-        events: evts.sort((a, b) => (a.minute ?? 999) - (b.minute ?? 999)),
+        events: evts.sort((a, b) => (b.minute ?? 0) - (a.minute ?? 0)),
       };
     }).sort((a, b) => b.matchDate.localeCompare(a.matchDate));
   });
