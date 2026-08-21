@@ -4,7 +4,7 @@ import {
   IonRefresher, IonRefresherContent, IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { shirtOutline } from 'ionicons/icons';
+import { shirtOutline, swapHorizontalOutline } from 'ionicons/icons';
 import { MatchEventsService } from '../../core/services/match-events.service';
 import { DistributionSnapshotsService } from '../../core/services/distribution-snaphsot.service';
 import { SeasonsService } from '../../core/services/season.service';
@@ -50,25 +50,36 @@ import { Player } from '../../core/models/player.model';
               <div class="event-list">
                 @for (event of group.events; track event.id) {
                   <div class="event-row">
-                    <span class="event-icon">{{ eventIcon(event) }}</span>
-                    <span class="event-shirt">
-                      <ion-icon name="shirt-outline" class="shirt-icon" />
-                      @if (playerNumber(event.playerId); as num) {
-                        <span class="shirt-num">{{ num }}</span>
-                      }
-                    </span>
-                    <div class="event-body">
-                      <span class="event-type">{{ event.eventType === 'goal' ? (event.note === 'home' ? 'Mål · ' + group.homeTeam : 'Mål · ' + group.awayTeam) : eventLabel(event) }}</span>
-                      @if (event.eventType === 'emergency_replacement' || event.eventType === 'substitution') {
-                        <span class="event-player">{{ event.note }}</span>
-                      } @else if (event.playerName) {
-                        <span class="event-player">{{ event.playerName }}</span>
-                      }
-                    </div>
+                    @if (event.eventType === 'substitution') {
+                      @let outId = subOutPlayerIdFromNote(event.note);
+                      <ion-icon name="swap-horizontal-outline" class="event-swap-icon" />
+                      <span class="sub-shirt">
+                        <ion-icon name="shirt-outline" class="shirt-icon" />
+                        <span class="shirt-num">{{ playerNumber(event.playerId) ?? '-' }}</span>
+                      </span>
+                      <span class="sub-name in">{{ playerShortName(event.playerName) }}</span>
+                      <span class="sub-arrow">›</span>
+                      <span class="sub-shirt out">
+                        <ion-icon name="shirt-outline" class="shirt-icon" />
+                        <span class="shirt-num">{{ playerNumber(outId) ?? '-' }}</span>
+                      </span>
+                      <span class="sub-name out">{{ playerShortName(outPlayerName(outId)) }}</span>
+                    } @else {
+                      <span class="event-icon">{{ eventIcon(event) }}</span>
+                      <span class="event-shirt">
+                        <ion-icon name="shirt-outline" class="shirt-icon" />
+                        <span class="shirt-num">{{ playerNumber(event.playerId) ?? '-' }}</span>
+                      </span>
+                      <div class="event-body">
+                        <span class="event-type">{{ event.eventType === 'goal' ? (event.note === 'home' ? 'Mål · ' + group.homeTeam : 'Mål · ' + group.awayTeam) : eventLabel(event) }}</span>
+                        @if (event.playerName) {
+                          <span class="event-player">{{ event.playerName }}</span>
+                        }
+                      </div>
+                    }
                     @if (event.minute) {
                       <span class="event-minute">{{ event.minute }}'</span>
                     }
-                    <span class="event-time">{{ formatTime(event.createdAt) }}</span>
                   </div>
                 }
               </div>
@@ -102,23 +113,30 @@ import { Player } from '../../core/models/player.model';
     .match-title { font-size: 13px; font-weight: 800; color: #F8FAFC; }
     .match-date { font-size: 11px; color: #64748B; }
 
-    .event-list { display: flex; flex-direction: column; gap: 6px; }
+    .event-list { display: flex; flex-direction: column; gap: 3px; }
 
     .event-row {
-      display: flex; align-items: center; gap: 10px;
-      background: #1E293B; border-radius: 12px; padding: 12px 14px;
-      border: 1px solid #334155;
+      display: flex; align-items: center; gap: 8px;
+      background: #1E293B; border-radius: 8px; padding: 6px 10px;
     }
-    .event-icon { font-size: 20px; flex-shrink: 0; }
-    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 46px; height: 46px; }
-    .shirt-icon { font-size: 46px; color: #475569; }
-    .shirt-num { position: absolute; font-size: 13px; font-weight: 900; color: #F8FAFC; margin-top: 6px; }
-    .event-body { flex: 1; min-width: 0; }
-    .event-type { display: block; font-size: 13px; font-weight: 700; color: #F8FAFC; }
-    .event-player { display: block; font-size: 12px; color: #94A3B8; }
-    .event-note { display: block; font-size: 11px; color: #64748B; margin-top: 2px; }
-    .event-minute { font-size: 14px; font-weight: 800; color: #10B981; flex-shrink: 0; }
-    .event-time { font-size: 11px; color: #475569; flex-shrink: 0; }
+    .event-icon { font-size: 15px; flex-shrink: 0; line-height: 1; width: 20px; text-align: center; }
+    .event-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 26px; height: 26px; }
+    .event-shirt .shirt-icon { font-size: 26px; color: #475569; }
+    .event-shirt .shirt-num { position: absolute; font-size: 8px; font-weight: 900; color: #F8FAFC; margin-top: 4px; }
+    .event-body { flex: 1; display: flex; align-items: baseline; gap: 5px; overflow: hidden; }
+    .event-type { font-size: 12px; font-weight: 700; color: #F8FAFC; white-space: nowrap; }
+    .event-player { font-size: 11px; color: #64748B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .event-minute { font-size: 11px; font-weight: 800; color: #10B981; flex-shrink: 0; margin-left: auto; }
+
+    .event-swap-icon { font-size: 15px; color: #10B981; flex-shrink: 0; width: 20px; text-align: center; }
+    .sub-shirt { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 22px; height: 22px; }
+    .sub-shirt .shirt-icon { font-size: 22px; color: #10B981; }
+    .sub-shirt .shirt-num { position: absolute; font-size: 7px; font-weight: 900; color: #F8FAFC; margin-top: 3px; }
+    .sub-shirt.out .shirt-icon { color: #475569; }
+    .sub-shirt.out .shirt-num { color: #94A3B8; }
+    .sub-name { font-size: 11px; font-weight: 700; color: #F8FAFC; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
+    .sub-name.out { color: #64748B; margin-right: auto; }
+    .sub-arrow { font-size: 13px; color: #475569; flex-shrink: 0; }
   `]
 })
 export class EventsPage implements OnInit {
@@ -155,11 +173,28 @@ export class EventsPage implements OnInit {
     }).sort((a, b) => b.matchDate.localeCompare(a.matchDate));
   });
 
-  constructor() { addIcons({ shirtOutline }); }
+  constructor() { addIcons({ shirtOutline, swapHorizontalOutline }); }
 
   playerNumber(playerId: string | undefined): number | undefined {
     if (!playerId) return undefined;
     return this.allClientPlayers().find(p => p.id === playerId)?.number;
+  }
+
+  subOutPlayerIdFromNote(note: string | undefined): string | undefined {
+    if (!note) return undefined;
+    return note.match(/^outId:([^|]+)/)?.[1];
+  }
+
+  outPlayerName(outId: string | undefined): string | undefined {
+    if (!outId) return undefined;
+    return this.allClientPlayers().find(p => p.id === outId)?.name;
+  }
+
+  playerShortName(name: string | undefined): string {
+    if (!name) return '?';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0];
+    return `${parts[0]} ${parts.slice(1).map(p => p[0].toUpperCase()).join('')}`;
   }
 
   async ngOnInit() {
