@@ -381,16 +381,11 @@ export class TodayPage implements OnInit {
     return this.teamsSvc.teams().find(t => t.id === teamId);
   }
 
-  isNow(match: { date: string; time: string; homeScore?: number | null }): boolean {
+  isNow(match: { id: string; homeScore?: number | null }): boolean {
     if (match.homeScore != null) return false;
-    const now = new Date();
-    const matchDate = match.date === this.todayStr();
-    if (!matchDate) return false;
-    const [h, m] = match.time.split(':').map(Number);
-    const matchStart = new Date();
-    matchStart.setHours(h, m, 0, 0);
-    const diff = (now.getTime() - matchStart.getTime()) / 60000;
-    return diff >= -15 && diff <= 105;
+    const started = localStorage.getItem(`match_${match.id}_startedAt`);
+    const ended = localStorage.getItem(`match_${match.id}_endedAt`);
+    return !!started && !ended;
   }
 
   isDone(match: { homeScore?: number | null }): boolean {
