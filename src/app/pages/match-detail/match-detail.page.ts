@@ -770,18 +770,17 @@ export class MatchDetailPage implements OnInit, OnDestroy {
       .filter(e => e.matchId === matchId && e.eventType === 'substitution')
       .sort((a, b) => (a.minute ?? 0) - (b.minute ?? 0));
 
-    // Track when each player last stepped onto the pitch (playerId -> minute entered)
+    // Tracks when a player last stepped onto the pitch (minute entered)
     const enteredAt = new Map<string, number>();
-    for (const id of this.starterIds()) {
-      enteredAt.set(id, 0);
-    }
 
     for (const ev of subEvents) {
       const minute = ev.minute ?? 0;
       const outId = this.subOutPlayerIdFromNote(ev.note);
       const inId = ev.playerId;
 
-      if (outId && enteredAt.has(outId)) {
+      if (outId) {
+        // If not yet tracked, player must have been an original starter (entered at 0)
+        if (!enteredAt.has(outId)) enteredAt.set(outId, 0);
         accumulated.set(outId, (accumulated.get(outId) ?? 0) + (minute - enteredAt.get(outId)!));
         enteredAt.delete(outId);
       }
@@ -790,7 +789,14 @@ export class MatchDetailPage implements OnInit, OnDestroy {
       }
     }
 
-    // Accumulate remaining time for all currently on-pitch players
+    // Players still in starterIds who were never touched by a sub event are original starters still on pitch
+    for (const id of this.starterIds()) {
+      if (!enteredAt.has(id) && !accumulated.has(id)) {
+        enteredAt.set(id, 0);
+      }
+    }
+
+    // Accumulate remaining time for everyone still on pitch
     for (const [id, entered] of enteredAt) {
       accumulated.set(id, (accumulated.get(id) ?? 0) + (currentMin - entered));
     }
