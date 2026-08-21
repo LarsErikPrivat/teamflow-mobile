@@ -12,7 +12,7 @@ import {
   checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
   personOutline, closeOutline, chevronDownOutline, shirtOutline,
   lockClosedOutline, lockOpenOutline, personRemoveOutline,
-  pauseOutline, playOutline, timerOutline
+  pauseOutline, playOutline
 } from 'ionicons/icons';
 import { MatchEventsService } from '../../core/services/match-events.service';
 import { PlayersService } from '../../core/services/players.service';
@@ -100,26 +100,38 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
 
         <!-- PERSISTENT ACTION BAR -->
         <div class="action-bar">
-          <button class="action-bar-btn" (click)="openSubstitution()">
-            <ion-icon name="swap-horizontal-outline" />
-            <span>Innbytte</span>
-          </button>
-          @if (currentPhase() === 'first' || currentPhase() === 'second') {
-            <button class="action-bar-btn pause-btn" (click)="manuallyPaused.set(true)">
+          @if (currentPhase() === 'before') {
+            <button class="action-bar-btn start-btn" (click)="startMatch()">
+              <ion-icon name="play-outline" />
+              <span>Start kamp</span>
+            </button>
+          }
+          @if (currentPhase() === 'first') {
+            <button class="action-bar-btn" (click)="openSubstitution()">
+              <ion-icon name="swap-horizontal-outline" />
+              <span>Innbytte</span>
+            </button>
+            <button class="action-bar-btn halftime-btn" (click)="callHalftime()">
               <ion-icon name="pause-outline" />
-              <span>Pause</span>
+              <span>Halvtid</span>
             </button>
           }
           @if (currentPhase() === 'break') {
-            <button class="action-bar-btn resume-btn" (click)="resumeFromBreak()">
+            <button class="action-bar-btn resume-btn" (click)="startSecondHalf()">
               <ion-icon name="play-outline" />
-              <span>Start</span>
+              <span>Start 2. omgang</span>
             </button>
           }
-          <button class="action-bar-btn settings-btn" (click)="openTimingSettings()">
-            <ion-icon name="timer-outline" />
-            <span>Tider</span>
-          </button>
+          @if (currentPhase() === 'second') {
+            <button class="action-bar-btn" (click)="openSubstitution()">
+              <ion-icon name="swap-horizontal-outline" />
+              <span>Innbytte</span>
+            </button>
+            <button class="action-bar-btn end-btn" (click)="endMatch()">
+              <ion-icon name="checkmark-circle-outline" />
+              <span>Ferdig</span>
+            </button>
+          }
         </div>
 
         <!-- EVENTS (shown above squad when events exist) -->
@@ -427,28 +439,6 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
       </ng-template>
     </ion-modal>
 
-    <!-- TIMING MODAL -->
-    <ion-modal [isOpen]="timingModalOpen()" (didDismiss)="timingModalOpen.set(false)" [breakpoints]="[0,1]" [initialBreakpoint]="1">
-      <ng-template>
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>Kampvarighet</ion-title>
-            <ion-buttons slot="end">
-              <ion-button (click)="timingModalOpen.set(false)"><ion-icon name="close-outline" /></ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content class="modal-content">
-          <div class="field-label">Omgangens varighet (min)</div>
-          <ion-input class="minute-input" type="number" [(ngModel)]="tempHalfDuration" fill="outline" />
-          <div class="field-label" style="margin-top:16px">Pausens varighet (min)</div>
-          <ion-input class="minute-input" type="number" [(ngModel)]="tempBreakDuration" fill="outline" />
-          <ion-button expand="block" class="confirm-btn" style="margin-top:24px" (click)="saveTiming()">
-            Lagre
-          </ion-button>
-        </ion-content>
-      </ng-template>
-    </ion-modal>
   `,
   styles: [`
     ion-toolbar { --color: white; }
@@ -463,9 +453,10 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .phase-break  { background: rgba(251,191,36,0.4);  color: #fff; }
     .phase-second { background: rgba(139,92,246,0.4);  color: #fff; }
     .phase-done   { background: rgba(100,116,139,0.3); color: rgba(255,255,255,0.7); }
-    .pause-btn { border-color: #FBBF24 !important; color: #FBBF24 !important; }
-    .resume-btn { border-color: #10B981 !important; color: #10B981 !important; }
-    .settings-btn { border-color: #475569 !important; color: #64748B !important; }
+    .start-btn    { border-color: #10B981 !important; color: #10B981 !important; background: rgba(16,185,129,0.1) !important; }
+    .halftime-btn { border-color: #FBBF24 !important; color: #FBBF24 !important; }
+    .resume-btn   { border-color: #10B981 !important; color: #10B981 !important; }
+    .end-btn      { border-color: #6366F1 !important; color: #6366F1 !important; }
     .squad-action-btn {
       display: flex; align-items: center; justify-content: center;
       width: 28px; height: 28px; border-radius: 8px;
@@ -679,51 +670,44 @@ export class MatchDetailPage implements OnInit, OnDestroy {
   readonly lineupLocked = computed(() => {
     const manual = this.lineupLockedManual();
     if (manual !== null) return manual;
+    if (this.matchStartedAt()) return true;
     const match = this.item()?.match;
     if (!match?.date || !match?.time) return false;
     return new Date(`${match.date}T${match.time}`) <= new Date();
   });
-  readonly halfDuration = signal(35);
-  readonly breakDuration = signal(5);
-  readonly manuallyPaused = signal(false);
-  readonly manualBreakSkip = signal(false);
-  readonly timingModalOpen = signal(false);
-  tempHalfDuration = 35;
-  tempBreakDuration = 5;
+  // Explicit match lifecycle timestamps (ms since epoch), persisted per match in localStorage
+  readonly matchStartedAt  = signal<number | null>(null);
+  readonly halftimeAt      = signal<number | null>(null);
+  readonly secondHalfAt    = signal<number | null>(null);
+  readonly matchEndedAt    = signal<number | null>(null);
+
   private readonly _tick = signal(0);
   private _tickInterval: ReturnType<typeof setInterval> | null = null;
 
-  readonly elapsedMinutes = computed(() => {
-    this._tick(); // subscribe to tick for reactivity
-    const match = this.item()?.match;
-    if (!match?.date || !match?.time) return null;
-    const kickoff = new Date(`${match.date}T${match.time}`).getTime();
-    const elapsed = Math.floor((Date.now() - kickoff) / 60000);
-    return elapsed < 0 ? null : elapsed;
-  });
-
   readonly currentPhase = computed((): 'before' | 'first' | 'break' | 'second' | 'done' => {
-    if (this.manuallyPaused()) return 'break';
-    const elapsed = this.elapsedMinutes();
-    if (elapsed === null) return 'before';
-    const half = this.halfDuration();
-    const brk = this.breakDuration();
-    if (elapsed < half) return 'first';
-    if (elapsed < half + brk && !this.manualBreakSkip()) return 'break';
-    if (elapsed < half * 2 + brk) return 'second';
-    return 'done';
+    this._tick();
+    if (!this.matchStartedAt()) return 'before';
+    if (this.matchEndedAt())    return 'done';
+    if (this.secondHalfAt())    return 'second';
+    if (this.halftimeAt())      return 'break';
+    return 'first';
   });
 
-  readonly currentMatchMinute = computed(() => {
-    const elapsed = this.elapsedMinutes();
-    if (elapsed === null) return null;
-    const half = this.halfDuration();
-    const brk = this.breakDuration();
+  readonly currentMatchMinute = computed((): number | null => {
+    this._tick();
     const phase = this.currentPhase();
-    if (phase === 'first') return Math.min(half, elapsed);
-    if (phase === 'break') return half;
-    if (phase === 'second' || phase === 'done') return Math.min(half, elapsed - brk);
-    return null;
+    if (phase === 'before') return null;
+    const now = Date.now();
+    const started = this.matchStartedAt()!;
+    if (phase === 'first') {
+      return Math.floor((now - started) / 60000);
+    }
+    const ht = this.halftimeAt()!;
+    const firstMin = Math.floor((ht - started) / 60000);
+    if (phase === 'break') return firstMin;
+    const sh = this.secondHalfAt()!;
+    const end = this.matchEndedAt() ?? now;
+    return firstMin + Math.floor((end - sh) / 60000);
   });
 
   readonly minutesPlayedMap = computed((): Map<string, number> => {
@@ -766,12 +750,7 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     if (raw) {
       try { this.starterIds.set(new Set(JSON.parse(raw))); } catch {}
     }
-    const half = localStorage.getItem(`timing_half_${matchId}`);
-    const brk = localStorage.getItem(`timing_break_${matchId}`);
-    if (half) this.halfDuration.set(+half);
-    if (brk) this.breakDuration.set(+brk);
-    this.tempHalfDuration = this.halfDuration();
-    this.tempBreakDuration = this.breakDuration();
+    this.loadTimestamps(matchId);
   }
 
   private saveStarterIds() {
@@ -780,34 +759,53 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     }
   }
 
-  resumeFromBreak() {
-    this.manuallyPaused.set(false);
-    // Skip auto-break if elapsed is still within the natural break window
-    const elapsed = this.elapsedMinutes();
-    if (elapsed !== null) {
-      const half = this.halfDuration();
-      const brk = this.breakDuration();
-      if (elapsed >= half && elapsed < half + brk) {
-        this.manualBreakSkip.set(true);
-      }
-    }
-  }
-
-  openTimingSettings() {
-    this.tempHalfDuration = this.halfDuration();
-    this.tempBreakDuration = this.breakDuration();
-    this.timingModalOpen.set(true);
-  }
-
-  saveTiming() {
-    this.halfDuration.set(this.tempHalfDuration);
-    this.breakDuration.set(this.tempBreakDuration);
+  private saveTimestamp(key: string, ts: number | null) {
     const matchId = this.item()?.match.id;
-    if (matchId) {
-      localStorage.setItem(`timing_half_${matchId}`, String(this.tempHalfDuration));
-      localStorage.setItem(`timing_break_${matchId}`, String(this.tempBreakDuration));
-    }
-    this.timingModalOpen.set(false);
+    if (!matchId) return;
+    if (ts === null) localStorage.removeItem(`${key}_${matchId}`);
+    else localStorage.setItem(`${key}_${matchId}`, String(ts));
+  }
+
+  private loadTimestamps(matchId: string) {
+    const load = (key: string) => {
+      const v = localStorage.getItem(`${key}_${matchId}`);
+      return v ? +v : null;
+    };
+    this.matchStartedAt.set(load('match_start'));
+    this.halftimeAt.set(load('match_halftime'));
+    this.secondHalfAt.set(load('match_second'));
+    this.matchEndedAt.set(load('match_end'));
+  }
+
+  startMatch() {
+    const now = Date.now();
+    this.matchStartedAt.set(now);
+    this.halftimeAt.set(null);
+    this.secondHalfAt.set(null);
+    this.matchEndedAt.set(null);
+    this.saveTimestamp('match_start', now);
+    this.saveTimestamp('match_halftime', null);
+    this.saveTimestamp('match_second', null);
+    this.saveTimestamp('match_end', null);
+  }
+
+  callHalftime() {
+    const now = Date.now();
+    this.halftimeAt.set(now);
+    this.saveTimestamp('match_halftime', now);
+  }
+
+  startSecondHalf() {
+    const now = Date.now();
+    this.secondHalfAt.set(now);
+    this.saveTimestamp('match_second', now);
+  }
+
+  endMatch() {
+    const now = Date.now();
+    this.matchEndedAt.set(now);
+    this.saveTimestamp('match_end', now);
+    this.markFullTime();
   }
 
   phaseLabel(): string {
@@ -952,7 +950,7 @@ export class MatchDetailPage implements OnInit, OnDestroy {
       checkmarkCircle, checkmarkCircleOutline, ellipseOutline, trashOutline,
       personOutline, closeOutline, chevronDownOutline, shirtOutline,
       lockClosedOutline, lockOpenOutline, personRemoveOutline,
-      pauseOutline, playOutline, timerOutline
+      pauseOutline, playOutline
     });
   }
 
