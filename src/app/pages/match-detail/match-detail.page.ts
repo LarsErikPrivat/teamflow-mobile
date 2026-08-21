@@ -124,13 +124,13 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                       <ion-icon name="shirt-outline" class="shirt-icon" />
                       <span class="shirt-num">{{ playerNumber(event.playerId) ?? '-' }}</span>
                     </span>
-                    <span class="sub-initials-inline in">{{ playerInitials(event.playerName) }}</span>
+                    <span class="sub-initials-inline in">{{ playerShortName(event.playerName) }}</span>
                     <span class="sub-arrow">›</span>
                     <span class="sub-shirt-inline out">
                       <ion-icon name="shirt-outline" class="shirt-icon" />
                       <span class="shirt-num">{{ playerNumber(outId) ?? '-' }}</span>
                     </span>
-                    <span class="sub-initials-inline out">{{ playerInitials(outPlayerName(outId)) }}</span>
+                    <span class="sub-initials-inline out">{{ playerShortName(outPlayerName(outId)) }}</span>
                   } @else {
                     <span class="event-icon">{{ eventIcon(event) }}</span>
                     <span class="event-shirt">
@@ -531,8 +531,8 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .sub-shirt-inline .shirt-num { position: absolute; font-size: 7px; font-weight: 900; color: #F8FAFC; margin-top: 3px; }
     .sub-shirt-inline.out .shirt-icon { color: #475569; }
     .sub-shirt-inline.out .shirt-num { color: #94A3B8; }
-    .sub-initials-inline { font-size: 11px; font-weight: 700; color: #F8FAFC; white-space: nowrap; }
-    .sub-initials-inline.out { color: #64748B; }
+    .sub-initials-inline { font-size: 11px; font-weight: 700; color: #F8FAFC; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
+    .sub-initials-inline.out { color: #64748B; margin-right: auto; }
     .sub-arrow { font-size: 13px; color: #475569; flex-shrink: 0; }
 
     /* FULL TIME */
@@ -681,6 +681,14 @@ export class MatchDetailPage implements OnInit {
   playerInitials(name: string | undefined): string {
     if (!name) return '?';
     return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  playerShortName(name: string | undefined): string {
+    if (!name) return '?';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0];
+    const initials = parts.slice(1).map(p => p[0].toUpperCase()).join('');
+    return `${parts[0]} ${initials}`;
   }
 
   subOutPlayerIdFromNote(note: string | undefined): string | undefined {
