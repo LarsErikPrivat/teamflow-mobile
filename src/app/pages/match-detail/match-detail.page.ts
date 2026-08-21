@@ -213,8 +213,8 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                     @for (_ of redArr(cards.red); track $index) { <span class="card-badge">🟥</span> }
                   </div>
                 }
-                @if (minutesPlayed(player.id); as min) {
-                  <span class="player-min-badge">{{ min }}'</span>
+                @if (currentMatchMinute() !== null) {
+                  <span class="player-min-badge">{{ minutesPlayed(player.id) ?? 0 }}'</span>
                 }
               </div>
             }
@@ -239,8 +239,8 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                     @for (_ of redArr(cards.red); track $index) { <span class="card-badge">🟥</span> }
                   </div>
                 }
-                @if (minutesPlayed(swap.player.id); as min) {
-                  <span class="player-min-badge">{{ min }}'</span>
+                @if (currentMatchMinute() !== null) {
+                  <span class="player-min-badge">{{ minutesPlayed(swap.player.id) ?? 0 }}'</span>
                 }
               </div>
             }
@@ -275,8 +275,8 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                       @for (_ of redArr(cards.red); track $index) { <span class="card-badge">🟥</span> }
                     </div>
                   }
-                  @if (minutesPlayed(player.id); as min) {
-                    <span class="player-min-badge">{{ min }}'</span>
+                  @if (currentMatchMinute() !== null) {
+                    <span class="player-min-badge">{{ minutesPlayed(player.id) ?? 0 }}'</span>
                   }
                 </div>
               }
@@ -552,7 +552,13 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
     .shirt-num { position: absolute; font-size: 13px; font-weight: 900; color: #F8FAFC; margin-top: 6px; }
     .player-info { flex: 1; min-width: 0; }
     .player-name { display: block; font-size: 14px; font-weight: 600; color: #F8FAFC; }
-    .player-min-badge { font-size: 11px; font-weight: 700; color: #64748B; margin-left: auto; flex-shrink: 0; padding-left: 6px; }
+    .player-min-badge {
+      display: inline-flex; align-items: center; gap: 2px;
+      margin-left: auto; flex-shrink: 0;
+      padding: 2px 7px; border-radius: 999px;
+      background: rgba(99,102,241,0.12); color: #6366F1;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.01em;
+    }
     .player-name.absent-name { text-decoration: line-through; color: #64748B; }
     .swap-tag { font-size: 10px; color: #DC2626; font-weight: 700; }
     .swap-tag.in { color: #0284c7; }
