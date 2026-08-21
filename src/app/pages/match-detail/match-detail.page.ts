@@ -294,6 +294,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                 [class.selected]="selectedPlayerId() === player.id"
                 (click)="selectedPlayerId.set(player.id); selectedPlayerName.set(player.name)"
               >
+                @if (player.number) { <span class="picker-nr">{{ player.number }}</span> }
                 {{ player.name }}
               </button>
             }
@@ -376,6 +377,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                 [class.selected]="swapOutId() === player.id"
                 (click)="swapOutId.set(player.id)"
               >
+                @if (player.number) { <span class="picker-nr">{{ player.number }}</span> }
                 {{ player.name }}
               </button>
             }
@@ -388,6 +390,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
                 [class.selected]="swapInId() === player.id"
                 (click)="swapInId.set(player.id)"
               >
+                @if (player.number) { <span class="picker-nr">{{ player.number }}</span> }
                 {{ player.name }}
               </button>
             } @empty {
