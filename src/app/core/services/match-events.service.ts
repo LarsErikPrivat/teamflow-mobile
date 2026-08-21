@@ -83,6 +83,16 @@ export class MatchEventsService {
     return this.fromRow(data);
   }
 
+  async removeAllForMatch(matchId: string): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('match_events')
+      .delete()
+      .eq('match_id', matchId);
+
+    if (error) { console.error('Failed to remove match events', error); return; }
+    this.events.update(evts => evts.filter(e => e.matchId !== matchId));
+  }
+
   async remove(eventId: string): Promise<void> {
     const { error } = await this.supabase.client
       .from('match_events')

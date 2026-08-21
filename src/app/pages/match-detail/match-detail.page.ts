@@ -845,6 +845,8 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     ['match_start', 'match_halftime', 'match_second', 'match_end'].forEach(k =>
       this.saveTimestamp(k, null)
     );
+    const matchId = this.item()?.match.id;
+    if (matchId) this.eventsService.removeAllForMatch(matchId);
   }
 
   endMatch() {
