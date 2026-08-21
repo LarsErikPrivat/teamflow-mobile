@@ -83,7 +83,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
         <!-- PERSISTENT ACTION BAR -->
         <div class="action-bar">
           @if (currentPhase() === 'before') {
-            <button class="action-bar-btn start-btn" (click)="startMatch()">
+            <button class="action-bar-btn start-btn" (click)="confirmStartMatch()">
               <ion-icon name="play-outline" />
               <span>Start kamp</span>
             </button>
@@ -109,7 +109,7 @@ type EventAction = 'goal_home' | 'goal_away' | 'yellow' | 'red' | 'swap';
               <ion-icon name="add-outline" />
               <span>Hendelse</span>
             </button>
-            <button class="action-bar-btn end-btn" (click)="endMatch()">
+            <button class="action-bar-btn end-btn" (click)="confirmEndMatch()">
               <ion-icon name="checkmark-circle-outline" />
               <span>Ferdig</span>
             </button>
@@ -848,6 +848,18 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     this.matchEndedAt.set(load('match_end'));
   }
 
+  async confirmStartMatch() {
+    const alert = await this.alert.create({
+      header: 'Start kamp',
+      message: 'Bekreft at kampen starter nå.',
+      buttons: [
+        { text: 'Avbryt', role: 'cancel' },
+        { text: 'Start kamp', handler: () => this.startMatch() },
+      ],
+    });
+    await alert.present();
+  }
+
   startMatch() {
     const now = Date.now();
     this.matchStartedAt.set(now);
@@ -910,6 +922,18 @@ export class MatchDetailPage implements OnInit, OnDestroy {
     }
     this.starterIds.set(new Set());
     if (this.starterStorageKey) localStorage.removeItem(this.starterStorageKey);
+  }
+
+  async confirmEndMatch() {
+    const alert = await this.alert.create({
+      header: 'Avslutt kamp',
+      message: 'Bekreft at kampen er ferdigspilt.',
+      buttons: [
+        { text: 'Avbryt', role: 'cancel' },
+        { text: 'Ferdig', handler: () => this.endMatch() },
+      ],
+    });
+    await alert.present();
   }
 
   endMatch() {
